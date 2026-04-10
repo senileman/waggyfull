@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}403 — Access Denied{% endblock %}
+
+{% block content %}
+<div class="container py-5 my-5 text-center">
+  <iconify-icon icon="la:lock" style="font-size:4rem; color:#D9D9D8;"></iconify-icon>
+  <h2 class="fw-normal mt-3">Access Denied</h2>
+  <p class="secondary-font" style="color:#908F8D; max-width:380px; margin:0.75rem auto 2rem;">
+    You don't have permission to view this page.
+    This area is restricted to administrators only.
+  </p>
+  <a href="{{ url_for('main.index') }}" class="btn btn-outline-dark rounded-1">
+    Return Home
+  </a>
+</div>
+{% endblock %}

@@ -1,0 +1,250 @@
+{% extends "base.html" %}
+{% block title %}Edit {{ product.name }} — Waggy Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+  #edit-section {
+    background: #F9F3EC url("{{ url_for('static', filename='images/background-img.png') }}") no-repeat center/cover;
+    min-height: calc(100vh - 220px);
+    padding: 3rem 0 5rem;
+  }
+  .form-card {
+    background: #fff; border-radius: 1rem;
+    padding: 2.5rem;
+    box-shadow: 0 8px 48px rgba(65,64,62,0.10);
+  }
+  .form-card .card-heading { font-size: 1.8rem; margin-bottom: 0.2rem; }
+  .form-card .card-sub {
+    font-family: var(--secondary-font); font-size: 0.875rem;
+    color: #908F8D; margin-bottom: 2rem;
+  }
+  .form-card .card-sub a { color: var(--accent-color); font-weight: 500; }
+
+  .field-label {
+    font-family: var(--secondary-font); font-size: 0.72rem; font-weight: 500;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: #908F8D; margin-bottom: 0.4rem; display: block;
+  }
+  .waggy-input {
+    width: 100%;
+    border: 1px solid rgba(65,64,62,0.20); border-radius: 0.25rem;
+    background: #fff; padding: 0.9rem 1rem;
+    font-family: var(--secondary-font); font-size: 0.95rem;
+    color: var(--bs-body-color); transition: border-color 0.2s; outline: none; appearance: none;
+  }
+  .waggy-input::placeholder { color: #CACACA; }
+  .waggy-input:focus { border-color: var(--accent-color); box-shadow: 0 0 0 3px rgba(222,173,111,0.15); }
+  select.waggy-input { cursor: pointer; }
+  textarea.waggy-input { resize: vertical; min-height: 120px; }
+
+  /* Current image preview */
+  .current-img-wrap {
+    display: flex; align-items: flex-start; gap: 1rem;
+    padding: 1rem;
+    background: #FAFAF9;
+    border: 1px solid rgba(65,64,62,0.1);
+    border-radius: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+  .current-img-wrap img {
+    width: 80px; height: 80px;
+    object-fit: cover; border-radius: 0.4rem;
+    flex-shrink: 0;
+  }
+  .current-img-wrap .img-meta {
+    font-family: var(--secondary-font); font-size: 0.82rem; color: #908F8D;
+  }
+  .current-img-wrap .img-meta strong { color: var(--bs-body-color); display: block; margin-bottom: 0.3rem; }
+
+  .img-upload-zone {
+    border: 2px dashed rgba(65,64,62,0.2); border-radius: 0.5rem;
+    padding: 1.5rem; text-align: center;
+    cursor: pointer; transition: border-color 0.2s, background 0.2s;
+    background: #FAFAF9; position: relative;
+  }
+  .img-upload-zone:hover, .img-upload-zone.drag-over { border-color: #DEAD6F; background: #FAEEDA; }
+  .img-upload-zone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+  .img-upload-zone .upload-hint { font-family: var(--secondary-font); font-size: 0.83rem; color: #908F8D; }
+  .img-upload-zone .upload-hint strong { color: #DEAD6F; }
+  .img-preview { display: none; max-height: 120px; border-radius: 0.4rem; margin-top: 0.6rem; object-fit: cover; }
+
+  .form-section-title {
+    font-family: var(--secondary-font); font-size: 0.72rem; letter-spacing: 0.12em;
+    text-transform: uppercase; color: #908F8D;
+    border-bottom: 1px solid rgba(65,64,62,0.08);
+    padding-bottom: 0.5rem; margin-bottom: 1.25rem; margin-top: 2rem;
+  }
+
+  .btn-submit {
+    padding: 1rem 2.5rem; background: #41403E; color: #fff;
+    border: none; border-radius: 0.25rem;
+    font-family: var(--secondary-font); font-size: 0.9rem; font-weight: 500;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    cursor: pointer; transition: background 0.2s;
+  }
+  .btn-submit:hover { background: #2e2d2b; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .form-card { animation: fadeUp 0.45s ease both; }
+</style>
+{% endblock %}
+
+{% block content %}
+<section id="edit-section">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-8 col-xl-7 mx-auto">
+        <div class="form-card">
+
+          <h2 class="card-heading fw-normal">Edit <span class="text-primary">Product</span></h2>
+          <p class="card-sub">
+            Editing: <strong>{{ product.name }}</strong>
+            &nbsp;|&nbsp;
+            <a href="{{ url_for('shop.product_detail', product_id=product.id) }}" target="_blank">
+              View live page ↗
+            </a>
+            &nbsp;|&nbsp;
+            <a href="{{ url_for('shop.change_listing') }}">← Back to listings</a>
+          </p>
+
+          <form method="POST"
+                action="{{ url_for('shop.edit_product', product_id=product.id) }}"
+                enctype="multipart/form-data" novalidate>
+
+            {# ── Basic info ── #}
+            <div class="form-section-title">Basic Information</div>
+
+            <div class="mb-3">
+              <label class="field-label" for="name">Product Name *</label>
+              <input type="text" class="waggy-input" id="name" name="name"
+                     value="{{ product.name }}" required autofocus>
+            </div>
+
+            <div class="row g-3 mb-3">
+              <div class="col-sm-7">
+                <label class="field-label" for="category">Category *</label>
+                <select class="waggy-input" id="category" name="category" required>
+                  {% for key, label in categories.items() %}
+                    <option value="{{ key }}" {% if product.category == key %}selected{% endif %}>
+                      {{ label }}
+                    </option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="col-sm-5">
+                <label class="field-label" for="price">Price (USD) *</label>
+                <input type="number" class="waggy-input" id="price" name="price"
+                       value="{{ product.price }}"
+                       min="0" step="0.01" required>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="field-label" for="description">Description</label>
+              <textarea class="waggy-input" id="description"
+                        name="description">{{ product.description }}</textarea>
+            </div>
+
+            {# ── Image ── #}
+            <div class="form-section-title">Product Image</div>
+
+            {# Show current image if set #}
+            {% if product.image_filename %}
+              <div class="current-img-wrap mb-3">
+                <img src="{{ url_for('static', filename=product.image_url) }}"
+                     alt="{{ product.name }}"
+                     onerror="this.src='{{ url_for('static', filename='images/item1.jpg') }}'">
+                <div class="img-meta">
+                  <strong>Current image</strong>
+                  <span>{{ product.image_filename }}</span><br>
+                  <div class="form-check mt-2">
+                    <input class="form-check-input" type="checkbox" id="clear_image" name="clear_image">
+                    <label class="form-check-label secondary-font" for="clear_image"
+                           style="font-size:0.8rem; color:#908F8D;">
+                      Remove current image
+                    </label>
+                  </div>
+                </div>
+              </div>
+            {% endif %}
+
+            <div class="mb-3">
+              <label class="field-label">
+                {{ 'Replace Image' if product.image_filename else 'Upload Image' }}
+              </label>
+              <div class="img-upload-zone" id="uploadZone">
+                <input type="file" name="image" id="imageInput"
+                       accept=".jpg,.jpeg,.png,.gif,.webp"
+                       onchange="previewImage(this)">
+                <div class="upload-hint">
+                  <strong>Click to upload</strong> or drag &amp; drop<br>
+                  PNG, JPG, WEBP, GIF — max 8 MB
+                  {% if product.image_filename %}
+                    &nbsp;·&nbsp; Leave empty to keep current image
+                  {% endif %}
+                </div>
+                <img id="imgPreview" class="img-preview" src="" alt="Preview">
+              </div>
+            </div>
+
+            {# ── Visibility ── #}
+            <div class="form-section-title">Visibility</div>
+
+            <div class="form-check mb-4">
+              <input class="form-check-input" type="checkbox" id="is_active" name="is_active"
+                     {% if product.is_active %}checked{% endif %}>
+              <label class="form-check-label secondary-font" for="is_active"
+                     style="font-size:0.875rem;">
+                Visible in the shop
+              </label>
+            </div>
+
+            {# ── Submit ── #}
+            <div class="d-flex align-items-center gap-3 flex-wrap">
+              <button type="submit" class="btn-submit">Save Changes</button>
+              <a href="{{ url_for('shop.change_listing') }}"
+                 class="secondary-font" style="font-size:0.875rem; color:#908F8D;">
+                Cancel
+              </a>
+            </div>
+
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function previewImage(input) {
+    if (input.files && input.files[0]) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const preview = document.getElementById('imgPreview');
+        preview.src = e.target.result;
+        preview.style.display = 'block';
+        document.querySelector('.upload-hint').style.opacity = '0.5';
+      };
+      reader.readAsDataURL(input.files[0]);
+    }
+  }
+
+  const zone = document.getElementById('uploadZone');
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault();
+    zone.classList.remove('drag-over');
+    const dt = e.dataTransfer;
+    if (dt.files.length) {
+      document.getElementById('imageInput').files = dt.files;
+      previewImage(document.getElementById('imageInput'));
+    }
+  });
+</script>
+{% endblock %}

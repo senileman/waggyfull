@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+{% block title %}{{ product.name }} — Waggy{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* ── Layout ──────────────────────────────────── */
+  .product-detail { padding: 3rem 0 5rem; }
+
+  /* ── Image ───────────────────────────────────── */
+  .detail-img-wrap {
+    border-radius: 1rem;
+    overflow: hidden;
+    background: #f5f5f5;
+    aspect-ratio: 1 / 1;
+  }
+  .detail-img-wrap img { width: 100%; height: 100%; object-fit: cover; }
+
+  /* ── Info panel ──────────────────────────────── */
+  .detail-cat {
+    font-family: var(--secondary-font);
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #CACACA;
+    margin-bottom: 0.5rem;
+  }
+  .detail-name { font-size: clamp(1.6rem,3vw,2.5rem); line-height: 1.2; margin-bottom: 0.75rem; }
+  .detail-price {
+    font-family: var(--secondary-font);
+    font-size: 1.8rem;
+    font-weight: 500;
+    color: #DEAD6F;
+    margin-bottom: 1.5rem;
+  }
+  .detail-desc {
+    font-family: var(--secondary-font);
+    font-size: 0.95rem;
+    color: #908F8D;
+    line-height: 1.9;
+    margin-bottom: 2rem;
+    white-space: pre-line;
+  }
+
+  /* ── Actions ─────────────────────────────────── */
+  .detail-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 2rem; }
+  .btn-cart-lg {
+    flex: 1;
+    min-width: 160px;
+    padding: 1rem 1.5rem;
+    background: #41403E;
+    color: #fff;
+    border: none;
+    border-radius: 0.25rem;
+    font-family: var(--secondary-font);
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .btn-cart-lg:hover { background: #2e2d2b; color: #fff; }
+  .btn-wish-lg {
+    padding: 1rem 1.2rem;
+    border: 1px solid rgba(65,64,62,0.20);
+    border-radius: 0.25rem;
+    background: transparent;
+    cursor: pointer;
+    color: #908F8D;
+    font-size: 1.3rem;
+    transition: all 0.2s;
+    display: flex; align-items: center;
+  }
+  .btn-wish-lg:hover { background: #fdf5ec; border-color: #DEAD6F; color: #DEAD6F; }
+
+  /* ── Meta tags ───────────────────────────────── */
+  .detail-meta {
+    border-top: 1px solid rgba(65,64,62,0.08);
+    padding-top: 1.5rem;
+    font-family: var(--secondary-font);
+    font-size: 0.85rem;
+    color: #908F8D;
+  }
+  .detail-meta span { color: var(--bs-body-color); font-weight: 500; }
+
+  /* ── Admin quick-edit bar ────────────────────── */
+  .admin-product-bar {
+    background: #FAEEDA;
+    border: 1px solid rgba(222,173,111,0.4);
+    border-radius: 0.5rem;
+    padding: 0.75rem 1.2rem;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 0.5rem;
+    margin-bottom: 2rem;
+    font-family: var(--secondary-font);
+    font-size: 0.85rem;
+    color: #6b5a2e;
+  }
+  .admin-product-bar a { color: #6b5a2e; font-weight: 500; margin-right: 1rem; }
+  .admin-product-bar a:hover { color: #41403E; }
+
+  /* ── Related products ────────────────────────── */
+  .related-section { border-top: 1px solid rgba(65,64,62,0.08); padding-top: 3rem; }
+  .related-card { text-decoration: none; color: inherit; display: block; }
+  .related-card__img {
+    border-radius: 0.75rem; overflow: hidden;
+    background: #f5f5f5; aspect-ratio: 1/1; margin-bottom: 0.75rem;
+  }
+  .related-card__img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.35s; }
+  .related-card:hover .related-card__img img { transform: scale(1.04); }
+  .related-card__name { font-size: 1rem; margin-bottom: 0.2rem; }
+  .related-card__price { font-family: var(--secondary-font); font-size: 0.9rem; color: #DEAD6F; font-weight: 500; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+{% if current_user.is_authenticated and current_user.is_admin %}
+  <div class="container mt-3">
+    <div class="admin-product-bar">
+      <span>
+        <iconify-icon icon="la:tools" style="font-size:1rem; vertical-align:-2px; margin-right:0.3rem;"></iconify-icon>
+        Admin view
+      </span>
+      <div>
+        <a href="{{ url_for('shop.edit_product', product_id=product.id) }}">
+          <iconify-icon icon="la:edit" style="font-size:1rem; vertical-align:-2px;"></iconify-icon>
+          Edit product
+        </a>
+        <a href="{{ url_for('shop.change_listing') }}">
+          <iconify-icon icon="la:list" style="font-size:1rem; vertical-align:-2px;"></iconify-icon>
+          All listings
+        </a>
+      </div>
+    </div>
+  </div>
+{% endif %}
+
+<div class="container product-detail">
+
+  {# Breadcrumb #}
+  <nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb" style="font-family:var(--secondary-font); font-size:0.83rem;">
+      <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}" class="text-muted text-decoration-none">Home</a></li>
+      <li class="breadcrumb-item"><a href="{{ url_for('shop.index') }}" class="text-muted text-decoration-none">Shop</a></li>
+      <li class="breadcrumb-item">
+        <a href="{{ url_for('shop.index', category=product.category) }}" class="text-muted text-decoration-none">
+          {{ product.category_label }}
+        </a>
+      </li>
+      <li class="breadcrumb-item active text-muted">{{ product.name }}</li>
+    </ol>
+  </nav>
+
+  <div class="row g-5 align-items-start">
+
+    {# ── Product image ──────────────────────────────────────────────────── #}
+    <div class="col-md-6">
+      <div class="detail-img-wrap">
+        <img
+          src="{{ url_for('static', filename=product.image_url) }}"
+          alt="{{ product.name }}"
+          onerror="this.src='{{ url_for('static', filename='images/item1.jpg') }}'"
+        >
+      </div>
+    </div>
+
+    {# ── Product info ───────────────────────────────────────────────────── #}
+    <div class="col-md-6">
+      <div class="detail-cat">{{ product.category_label }}</div>
+      <h1 class="detail-name fw-normal">{{ product.name }}</h1>
+      <div class="detail-price">${{ "%.2f" | format(product.price) }}</div>
+
+      {% if product.description %}
+        <div class="detail-desc">{{ product.description }}</div>
+      {% else %}
+        <div class="detail-desc" style="color:#D9D9D8; font-style:italic;">
+          No description provided yet.
+        </div>
+      {% endif %}
+
+      <div class="detail-actions">
+        <button class="btn-cart-lg">
+          <iconify-icon icon="mdi:cart-outline" style="font-size:1.1rem; vertical-align:-2px; margin-right:0.4rem;"></iconify-icon>
+          Add to Cart
+        </button>
+        <button class="btn-wish-lg" title="Add to wishlist">
+          <iconify-icon icon="fluent:heart-28-regular"></iconify-icon>
+        </button>
+      </div>
+
+      <div class="detail-meta">
+        <div class="mb-1">Category: <span>{{ product.category_label }}</span></div>
+        <div>Listed: <span>{{ product.created_at.strftime('%d %B %Y') }}</span></div>
+      </div>
+    </div>
+
+  </div>{# /row #}
+
+  {# ── Related products ───────────────────────────────────────────────────── #}
+  {% if related %}
+    <div class="related-section mt-5">
+      <h2 class="fw-normal mb-4">More from <span class="text-primary">{{ product.category_label }}</span></h2>
+      <div class="row row-cols-2 row-cols-md-4 g-4">
+        {% for rel in related %}
+          <div class="col">
+            <a href="{{ url_for('shop.product_detail', product_id=rel.id) }}" class="related-card">
+              <div class="related-card__img">
+                <img
+                  src="{{ url_for('static', filename=rel.image_url) }}"
+                  alt="{{ rel.name }}"
+                  onerror="this.src='{{ url_for('static', filename='images/item1.jpg') }}'"
+                >
+              </div>
+              <div class="related-card__name">{{ rel.name }}</div>
+              <div class="related-card__price">${{ "%.2f" | format(rel.price) }}</div>
+            </a>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
+</div>{# /container #}
+{% endblock %}

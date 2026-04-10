@@ -26,17 +26,11 @@ class User(UserMixin, db.Model):
     created_at    = db.Column(db.DateTime,    nullable=False, default=datetime.utcnow)
     last_login_at = db.Column(db.DateTime,    nullable=True)
 
-    # ── Password helpers ─────────────────────────────────────────────────────
-
     def set_password(self, plain_text: str) -> None:
-        """Hash and store the password (PBKDF2-SHA256 via Werkzeug)."""
         self.password_hash = generate_password_hash(plain_text)
 
     def check_password(self, plain_text: str) -> bool:
-        """Return True if plain_text matches the stored hash."""
         return check_password_hash(self.password_hash, plain_text)
-
-    # ── Convenience properties ───────────────────────────────────────────────
 
     @property
     def is_admin(self) -> bool:
@@ -44,3 +38,48 @@ class User(UserMixin, db.Model):
 
     def __repr__(self) -> str:
         return f"<User {self.username!r} role={self.role!r}>"
+
+
+# ── Product categories ────────────────────────────────────────────────────────
+
+PRODUCT_CATEGORIES = {
+    "food":        "Pet Foods",
+    "clothing":    "Pet Clothing",
+    "accessories": "Pet Accessories",
+    "comforts":    "Pet Comforts",
+    "misc":        "Pet Misc",
+}
+
+
+class Product(db.Model):
+    """
+    Represents a product listed in the Waggy store.
+
+    Categories: food | clothing | accessories | comforts | misc
+    """
+
+    __tablename__ = "products"
+
+    id          = db.Column(db.Integer,     primary_key=True)
+    name        = db.Column(db.String(120), nullable=False)
+    category    = db.Column(db.String(30),  nullable=False, default="misc")
+    description = db.Column(db.Text,        nullable=False, default="")
+    image_filename = db.Column(db.String(256), nullable=True)
+    price       = db.Column(db.Float,       nullable=False, default=0.0)
+    is_active   = db.Column(db.Boolean,     nullable=False, default=True)
+    created_at  = db.Column(db.DateTime,    nullable=False, default=datetime.utcnow)
+    updated_at  = db.Column(db.DateTime,    nullable=False, default=datetime.utcnow,
+                            onupdate=datetime.utcnow)
+
+    @property
+    def category_label(self) -> str:
+        return PRODUCT_CATEGORIES.get(self.category, self.category.capitalize())
+
+    @property
+    def image_url(self) -> str:
+        if self.image_filename:
+            return f"images/products/{self.image_filename}"
+        return "images/item1.jpg"
+
+    def __repr__(self) -> str:
+        return f"<Product {self.name!r} [{self.category}] ${self.price:.2f}>"
