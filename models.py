@@ -67,6 +67,7 @@ class Product(db.Model):
     image_filename = db.Column(db.String(256), nullable=True)
     price       = db.Column(db.Float,       nullable=False, default=0.0)
     is_active   = db.Column(db.Boolean,     nullable=False, default=True)
+    stock       = db.Column(db.Integer,     nullable=False, default=0)
     created_at  = db.Column(db.DateTime,    nullable=False, default=datetime.utcnow)
     updated_at  = db.Column(db.DateTime,    nullable=False, default=datetime.utcnow,
                             onupdate=datetime.utcnow)

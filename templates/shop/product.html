@@ -41,6 +41,31 @@
     white-space: pre-line;
   }
 
+  /* ── Stock indicator ────────────────────────── */
+  .stock-indicator { margin-bottom: 1.25rem; }
+  .stock-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-family: var(--secondary-font);
+    font-size: 0.82rem;
+    font-weight: 500;
+    padding: 0.35rem 0.85rem;
+    border-radius: 2rem;
+    letter-spacing: 0.02em;
+  }
+  .stock-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .stock-pill.in  { background: rgba(90,171,90,0.12); color: #2d7a2d; }
+  .stock-pill.in  .stock-dot { background: #5aab5a; }
+  .stock-pill.low { background: rgba(255,152,0,0.12); color: #a06000; }
+  .stock-pill.low .stock-dot { background: #ff9800; }
+  .stock-pill.out { background: rgba(192,57,43,0.10); color: #a02020; }
+  .stock-pill.out .stock-dot { background: #c0392b; }
+
   /* ── Actions ─────────────────────────────────── */
   .detail-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 2rem; }
   .btn-cart-lg {
@@ -180,13 +205,33 @@
       {% endif %}
 
       <div class="detail-actions">
-        <button class="btn-cart-lg">
+        <button class="btn-cart-lg" {% if product.stock == 0 %}disabled style="opacity:0.5; cursor:not-allowed;"{% endif %}>
           <iconify-icon icon="mdi:cart-outline" style="font-size:1.1rem; vertical-align:-2px; margin-right:0.4rem;"></iconify-icon>
-          Add to Cart
+          {% if product.stock == 0 %}Out of Stock{% else %}Add to Cart{% endif %}
         </button>
         <button class="btn-wish-lg" title="Add to wishlist">
           <iconify-icon icon="fluent:heart-28-regular"></iconify-icon>
         </button>
+      </div>
+
+      {# ── Stock indicator ─────────────────────────────────────────────── #}
+      <div class="stock-indicator mb-3">
+        {% if product.stock == 0 %}
+          <span class="stock-pill out">
+            <span class="stock-dot"></span>
+            Out of stock
+          </span>
+        {% elif product.stock <= 5 %}
+          <span class="stock-pill low">
+            <span class="stock-dot"></span>
+            Only {{ product.stock }} left
+          </span>
+        {% else %}
+          <span class="stock-pill in">
+            <span class="stock-dot"></span>
+            In stock ({{ product.stock }} available)
+          </span>
+        {% endif %}
       </div>
 
       <div class="detail-meta">

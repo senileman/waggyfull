@@ -133,7 +133,7 @@
             </div>
 
             <div class="row g-3 mb-3">
-              <div class="col-sm-7">
+              <div class="col-sm-5">
                 <label class="field-label" for="category">Category <span style="color:#c0392b;">*</span></label>
                 <select class="waggy-input" id="category" name="category" required>
                   <option value="" disabled {% if not form.get('category') %}selected{% endif %}>
@@ -147,12 +147,19 @@
                   {% endfor %}
                 </select>
               </div>
-              <div class="col-sm-5">
+              <div class="col-sm-4">
                 <label class="field-label" for="price">Price (USD) <span style="color:#c0392b;">*</span></label>
                 <input type="number" class="waggy-input" id="price" name="price"
                        value="{{ form.get('price', '') }}"
                        placeholder="0.00"
                        min="0" step="0.01" required>
+              </div>
+              <div class="col-sm-3">
+                <label class="field-label" for="stock">Stock <span style="color:#c0392b;">*</span></label>
+                <input type="number" class="waggy-input" id="stock" name="stock"
+                       value="{{ form.get('stock', '0') }}"
+                       placeholder="0"
+                       min="0" step="1" required>
               </div>
             </div>
 

@@ -136,6 +136,7 @@ def add_product():
         price_raw   = request.form.get("price", "0")
         is_active   = bool(request.form.get("is_active"))
         image_file  = request.files.get("image")
+        stock_raw   = request.form.get("stock", "0")
 
         # Validate
         errors = []
@@ -150,6 +151,13 @@ def add_product():
         except ValueError:
             errors.append("Price must be a positive number.")
             price = 0.0
+        try:
+            stock = int(stock_raw)
+            if stock < 0:
+                raise ValueError
+        except ValueError:
+            errors.append("Stock must be a whole number of 0 or more.")
+            stock = 0
 
         if errors:
             for e in errors:
@@ -169,6 +177,7 @@ def add_product():
             image_filename=image_filename,
             price=price,
             is_active=is_active,
+            stock=stock,
         )
         db.session.add(product)
         db.session.commit()
@@ -197,6 +206,7 @@ def edit_product(product_id):
         is_active   = bool(request.form.get("is_active"))
         image_file  = request.files.get("image")
         clear_image = bool(request.form.get("clear_image"))
+        stock_raw   = request.form.get("stock", "0")
 
         errors = []
         if not name:
@@ -210,6 +220,13 @@ def edit_product(product_id):
         except ValueError:
             errors.append("Price must be a positive number.")
             price = product.price
+        try:
+            stock = int(stock_raw)
+            if stock < 0:
+                raise ValueError
+        except ValueError:
+            errors.append("Stock must be a whole number of 0 or more.")
+            stock = product.stock
 
         if errors:
             for e in errors:
@@ -232,6 +249,7 @@ def edit_product(product_id):
         product.description = description
         product.price       = price
         product.is_active   = is_active
+        product.stock       = stock
         db.session.commit()
 
         flash(f"Product \"{name}\" updated.", "success")
