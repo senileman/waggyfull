@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Waggy — Best destination for your pets{% endblock %}
+
+{% block content %}
+
+{# ─────────────────────────────────────────────────────────────── #}
+{# NOTE TO DEVELOPER:                                              #}
+{# Paste the contents of each <section> from your original        #}
+{# index.html inside this block.                                   #}
+{# Update every image / CSS / JS path to use:                     #}
+{#   {{ url_for('static', filename='images/your-file.jpg') }}     #}
+{# All other template structure (header, footer, scripts)         #}
+{# is inherited automatically from base.html.                     #}
+{# ─────────────────────────────────────────────────────────────── #}
+
+{# ── Hero banner ──────────────────────────────────────────────── #}
+<section id="banner" style="background: #F9F3EC;">
+  <div class="container">
+    <div class="swiper main-swiper">
+      <div class="swiper-wrapper">
+
+        <div class="swiper-slide py-5">
+          <div class="row banner-content align-items-center">
+            <div class="img-wrapper col-md-5">
+              <img src="{{ url_for('static', filename='images/banner-img.png') }}" class="img-fluid" alt="">
+            </div>
+            <div class="content-wrapper col-md-7 p-5 mb-5">
+              <div class="secondary-font text-primary text-uppercase mb-4">Save 10 – 20 % off</div>
+              <h2 class="banner-title display-1 fw-normal">
+                Best destination for <span class="text-primary">your pets</span>
+              </h2>
+              <a href="#" class="btn btn-outline-dark btn-lg text-uppercase fs-6 rounded-1">
+                Shop now
+                <svg width="24" height="24" viewBox="0 0 24 24" class="mb-1"><use xlink:href="#arrow-right"></use></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="swiper-pagination mb-5"></div>
+    </div>
+  </div>
+</section>
+
+{# ── Auth call-to-action (shown only to guests) ───────────────── #}
+{% if not current_user.is_authenticated %}
+<section class="py-4" style="background: #fff; border-top: 1px solid #f0f0f0; border-bottom: 1px solid #f0f0f0;">
+  <div class="container text-center">
+    <p class="mb-3 secondary-font" style="color: #908F8D;">
+      <strong class="text-dark">Get 20% off your first order</strong> — create a free account today.
+    </p>
+    <a href="{{ url_for('auth.register') }}" class="btn btn-primary rounded-1 me-2">Create account</a>
+    <a href="{{ url_for('auth.login') }}" class="btn btn-outline-dark rounded-1">Sign in</a>
+  </div>
+</section>
+{% endif %}
+
+{# Paste the remaining sections from your original index.html here #}
+{# (categories, clothing carousel, foodies grid, testimonials, etc.) #}
+
+{% endblock %}

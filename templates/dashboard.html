@@ -1,0 +1,269 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* ── Hero bar ──────────────────────────────────────────────── */
+  .dash-hero {
+    background: #F9F3EC;
+    border-bottom: 1px solid rgba(65, 64, 62, 0.08);
+    padding: 2.5rem 0;
+  }
+  .dash-avatar {
+    width: 54px; height: 54px;
+    border-radius: 50%;
+    background: var(--accent-color);
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem;
+    font-family: var(--body-font);
+    flex-shrink: 0;
+  }
+  .dash-hero h2 { font-size: 1.8rem; margin-bottom: 0.15rem; }
+  .role-badge {
+    display: inline-block;
+    font-family: var(--secondary-font);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: var(--accent-color);
+    color: #fff;
+    padding: 0.2em 0.7em;
+    border-radius: 2rem;
+    vertical-align: middle;
+    margin-left: 0.4rem;
+  }
+  .role-badge.customer { background: #6995B1; }
+
+  /* ── Stat cards ────────────────────────────────────────────── */
+  .stat-card {
+    background: #fff;
+    border: 1px solid rgba(65, 64, 62, 0.08);
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    text-align: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 24px rgba(65, 64, 62, 0.09);
+  }
+  .stat-card iconify-icon { font-size: 2rem; color: var(--accent-color); }
+  .stat-value {
+    font-size: 2rem; line-height: 1.1;
+    margin: 0.5rem 0 0.2rem;
+  }
+  .stat-lbl {
+    font-family: var(--secondary-font);
+    font-size: 0.78rem; letter-spacing: 0.08em;
+    text-transform: uppercase; color: #908F8D;
+  }
+
+  /* ── Info table ────────────────────────────────────────────── */
+  .info-section h4 {
+    font-size: 1.25rem;
+    border-bottom: 2px solid #F9F3EC;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.2rem;
+  }
+  .info-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid #f5f5f5;
+    font-family: var(--secondary-font); font-size: 0.9rem;
+  }
+  .info-row:last-child { border-bottom: none; }
+  .info-row .lbl { color: #908F8D; }
+
+  /* ── Quick-link cards ──────────────────────────────────────── */
+  .quick-link {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 0.5rem;
+    background: #fff;
+    border: 1px solid rgba(65, 64, 62, 0.08);
+    border-radius: 0.75rem;
+    padding: 1.5rem 1rem;
+    text-decoration: none;
+    color: var(--bs-body-color);
+    transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+    text-align: center;
+  }
+  .quick-link:hover {
+    background: #F9F3EC;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 18px rgba(65, 64, 62, 0.08);
+    color: var(--bs-body-color);
+  }
+  .quick-link iconify-icon { font-size: 1.8rem; color: var(--accent-color); }
+  .quick-link span {
+    font-family: var(--secondary-font);
+    font-size: 0.85rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+{# ── Dashboard hero ─────────────────────────────────────────── #}
+<div class="dash-hero">
+  <div class="container">
+    <div class="d-flex align-items-center gap-3">
+      <div class="dash-avatar">{{ current_user.username[0].upper() }}</div>
+      <div>
+        <h2>
+          Hello, {{ current_user.username }}!
+          <span class="role-badge {{ current_user.role }}">
+            {{ current_user.role | capitalize }}
+          </span>
+        </h2>
+        <p class="mb-0 secondary-font" style="color: #908F8D; font-size: 0.875rem;">
+          {{ current_user.email }}
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container my-5">
+
+  {# ── Stat row ───────────────────────────────────────────────── #}
+  <div class="row g-3 mb-5">
+    {% if current_user.is_admin %}
+      <div class="col-6 col-md-3">
+        <div class="stat-card">
+          <iconify-icon icon="la:users"></iconify-icon>
+          <div class="stat-value">—</div>
+          <div class="stat-lbl">Total Users</div>
+        </div>
+      </div>
+    {% endif %}
+    <div class="col-6 col-md-3">
+      <div class="stat-card">
+        <iconify-icon icon="la:shopping-bag"></iconify-icon>
+        <div class="stat-value">0</div>
+        <div class="stat-lbl">Orders</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card">
+        <iconify-icon icon="la:heart"></iconify-icon>
+        <div class="stat-value">0</div>
+        <div class="stat-lbl">Wishlist</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card">
+        <iconify-icon icon="la:box"></iconify-icon>
+        <div class="stat-value">0</div>
+        <div class="stat-lbl">{% if current_user.is_admin %}Products{% else %}Saved Items{% endif %}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+
+    {# ── Account info ─────────────────────────────────────────── #}
+    <div class="col-md-5 info-section">
+      <h4>Account Details</h4>
+      <div class="info-row">
+        <span class="lbl">Username</span>
+        <span>{{ current_user.username }}</span>
+      </div>
+      <div class="info-row">
+        <span class="lbl">Email</span>
+        <span>{{ current_user.email }}</span>
+      </div>
+      <div class="info-row">
+        <span class="lbl">Role</span>
+        <span class="role-badge {{ current_user.role }}">{{ current_user.role | capitalize }}</span>
+      </div>
+      <div class="info-row">
+        <span class="lbl">Member since</span>
+        <span>{{ current_user.created_at.strftime('%d %b %Y') }}</span>
+      </div>
+      <div class="info-row">
+        <span class="lbl">Last login</span>
+        <span>
+          {% if current_user.last_login_at %}
+            {{ current_user.last_login_at.strftime('%d %b %Y, %H:%M') }}
+          {% else %}
+            —
+          {% endif %}
+        </span>
+      </div>
+      <div class="mt-4">
+        <a href="{{ url_for('auth.logout') }}"
+           class="btn btn-outline-dark rounded-1"
+           style="font-size: 0.875rem; padding: 0.5rem 1.5rem;">
+          <iconify-icon icon="la:sign-out-alt" class="me-1"></iconify-icon>
+          Sign Out
+        </a>
+      </div>
+    </div>
+
+    {# ── Quick links ──────────────────────────────────────────── #}
+    <div class="col-md-7">
+      <h4 class="info-section">
+        {% if current_user.is_admin %}Admin Panel{% else %}My Account{% endif %}
+      </h4>
+      <div class="row g-3">
+        {% if current_user.is_admin %}
+          <div class="col-6 col-sm-4">
+            <a href="#" class="quick-link">
+              <iconify-icon icon="la:users-cog"></iconify-icon>
+              <span>Manage Users</span>
+            </a>
+          </div>
+          <div class="col-6 col-sm-4">
+            <a href="#" class="quick-link">
+              <iconify-icon icon="la:box-open"></iconify-icon>
+              <span>Manage Products</span>
+            </a>
+          </div>
+          <div class="col-6 col-sm-4">
+            <a href="#" class="quick-link">
+              <iconify-icon icon="la:clipboard-list"></iconify-icon>
+              <span>View Orders</span>
+            </a>
+          </div>
+          <div class="col-6 col-sm-4">
+            <a href="#" class="quick-link">
+              <iconify-icon icon="la:chart-bar"></iconify-icon>
+              <span>Analytics</span>
+            </a>
+          </div>
+        {% else %}
+          <div class="col-6 col-sm-4">
+            <a href="{{ url_for('main.index') }}" class="quick-link">
+              <iconify-icon icon="la:store"></iconify-icon>
+              <span>Browse Shop</span>
+            </a>
+          </div>
+          <div class="col-6 col-sm-4">
+            <a href="#" class="quick-link">
+              <iconify-icon icon="la:clipboard-list"></iconify-icon>
+              <span>My Orders</span>
+            </a>
+          </div>
+          <div class="col-6 col-sm-4">
+            <a href="#" class="quick-link">
+              <iconify-icon icon="la:heart"></iconify-icon>
+              <span>Wishlist</span>
+            </a>
+          </div>
+          <div class="col-6 col-sm-4">
+            <a href="#" class="quick-link">
+              <iconify-icon icon="la:user-edit"></iconify-icon>
+              <span>Edit Profile</span>
+            </a>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>{# /row #}
+</div>{# /container #}
+
+{% endblock %}

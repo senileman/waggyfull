@@ -1,0 +1,401 @@
+{% extends "base.html" %}
+{% block title %}Create Account{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* ── Register section ──────────────────────────────────────── */
+  #register-section {
+    background: #F9F3EC url("{{ url_for('static', filename='images/background-img.png') }}") no-repeat center/cover;
+    min-height: calc(100vh - 220px);
+    display: flex;
+    align-items: center;
+    padding: 4rem 0;
+  }
+
+  /* ── Form card (centred, matches existing register section) ── */
+  .register-card {
+    background: #ffffff;
+    border-radius: 1rem;
+    padding: 2.75rem 2.5rem 3rem;
+    box-shadow: 0 8px 48px rgba(65, 64, 62, 0.10);
+  }
+  .register-card .card-heading {
+    font-size: clamp(1.8rem, 3vw, 2.5rem);
+    font-weight: 400;
+    line-height: 1.2;
+    margin-bottom: 0.3rem;
+  }
+  .register-card .card-sub {
+    font-family: var(--secondary-font);
+    font-size: 0.875rem;
+    color: #908F8D;
+    margin-bottom: 2rem;
+  }
+  .register-card .card-sub a {
+    color: var(--accent-color);
+    font-weight: 500;
+  }
+  .register-card .card-sub a:hover { text-decoration: underline; }
+
+  /* ── Field labels ──────────────────────────────────────────── */
+  .field-label {
+    font-family: var(--secondary-font);
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #908F8D;
+    margin-bottom: 0.4rem;
+    display: block;
+  }
+  .waggy-input {
+    width: 100%;
+    border: 1px solid rgba(65, 64, 62, 0.20);
+    border-radius: 0.25rem;
+    background: #fff;
+    padding: 0.9rem 1rem;
+    font-family: var(--secondary-font);
+    font-size: 0.95rem;
+    color: var(--bs-body-color);
+    transition: border-color 0.2s;
+    outline: none;
+    appearance: none;
+  }
+  .waggy-input::placeholder { color: #CACACA; }
+  .waggy-input:focus {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgba(222, 173, 111, 0.15);
+  }
+  .waggy-input.input-error { border-color: #dc3545; }
+
+  .input-wrapper         { position: relative; }
+  .input-wrapper .waggy-input { padding-right: 3rem; }
+  .toggle-pwd-btn {
+    position: absolute; right: 0.9rem; top: 50%;
+    transform: translateY(-50%);
+    background: none; border: none; cursor: pointer;
+    color: #CACACA; padding: 0;
+    display: flex; align-items: center;
+    font-size: 1.15rem; transition: color 0.2s;
+  }
+  .toggle-pwd-btn:hover { color: #908F8D; }
+
+  /* ── Password strength bar ─────────────────────────────────── */
+  .strength-track {
+    height: 5px;
+    background: #E9E9E9;
+    border-radius: 3px;
+    margin-top: 0.5rem;
+    overflow: hidden;
+  }
+  .strength-fill {
+    height: 100%;
+    border-radius: 3px;
+    width: 0;
+    transition: width 0.35s ease, background-color 0.35s ease;
+  }
+  .strength-label {
+    font-family: var(--secondary-font);
+    font-size: 0.78rem;
+    margin-top: 0.3rem;
+    min-height: 1.2em;
+  }
+
+  /* ── Password requirements checklist ──────────────────────── */
+  .req-list {
+    list-style: none;
+    padding: 0.5rem 0 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.3rem 1rem;
+  }
+  .req-list li {
+    font-family: var(--secondary-font);
+    font-size: 0.78rem;
+    color: #CACACA;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    transition: color 0.25s;
+  }
+  .req-list li::before {
+    content: "○";
+    font-size: 0.65rem;
+    flex-shrink: 0;
+  }
+  .req-list li.met {
+    color: #5aab5a;
+  }
+  .req-list li.met::before { content: "●"; }
+
+  /* ── Submit button ─────────────────────────────────────────── */
+  .btn-register {
+    width: 100%;
+    padding: 1rem;
+    background: #41403E;
+    color: #fff;
+    border: none;
+    border-radius: 0.25rem;
+    font-family: var(--body-font);
+    font-size: 1.1rem;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: background 0.2s, transform 0.1s;
+  }
+  .btn-register:hover  { background: #2e2d2b; }
+  .btn-register:active { transform: scale(0.98); }
+
+  .login-prompt {
+    text-align: center;
+    font-family: var(--secondary-font);
+    font-size: 0.875rem;
+    color: #908F8D;
+    margin: 0;
+  }
+  .login-prompt a {
+    color: var(--accent-color);
+    font-weight: 500;
+  }
+  .login-prompt a:hover { text-decoration: underline; }
+
+  /* ── Divider ───────────────────────────────────────────────── */
+  .divider-line {
+    display: flex; align-items: center; gap: 0.75rem;
+    margin: 1.5rem 0;
+    font-family: var(--secondary-font); font-size: 0.8rem; color: #CACACA;
+  }
+  .divider-line::before, .divider-line::after {
+    content: ""; flex: 1; height: 1px; background: #E9E9E9;
+  }
+
+  /* ── Terms checkbox ────────────────────────────────────────── */
+  .terms-check .form-check-label {
+    font-family: var(--secondary-font);
+    font-size: 0.85rem;
+    color: #908F8D;
+    line-height: 1.5;
+  }
+  .terms-check .form-check-label a { color: var(--accent-color); }
+  .form-check-input:checked {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+  }
+
+  /* ── Fade-in ───────────────────────────────────────────────── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .register-card { animation: fadeUp 0.5s ease both; }
+</style>
+{% endblock %}
+
+{% block content %}
+<section id="register-section">
+  <div class="container">
+    <div class="row">
+
+      {# Centred card — matches the existing register section layout (offset-md-3 col-md-6) #}
+      <div class="col-md-10 col-lg-8 col-xl-6 mx-auto">
+        <div class="register-card">
+
+          <h2 class="card-heading fw-normal text-center">
+            Join the <span class="text-primary">Waggy</span> family
+          </h2>
+          <p class="card-sub text-center">
+            Already have an account?
+            <a href="{{ url_for('auth.login') }}">Sign in instead</a>
+          </p>
+
+          <form method="POST" action="{{ url_for('auth.register') }}" novalidate id="register-form">
+
+            {# ── Row 1: Username + Email ── #}
+            <div class="row g-3 mb-3">
+              <div class="col-sm-6">
+                <label class="field-label" for="username">Username</label>
+                <input
+                  type="text"
+                  class="waggy-input"
+                  id="username"
+                  name="username"
+                  value="{{ username or '' }}"
+                  placeholder="pawlover_99"
+                  minlength="3"
+                  maxlength="30"
+                  autocomplete="username"
+                  required
+                  autofocus
+                >
+              </div>
+              <div class="col-sm-6">
+                <label class="field-label" for="email">Email Address</label>
+                <input
+                  type="email"
+                  class="waggy-input"
+                  id="email"
+                  name="email"
+                  value="{{ email or '' }}"
+                  placeholder="you@example.com"
+                  autocomplete="email"
+                  required
+                >
+              </div>
+            </div>
+
+            {# ── Password ── #}
+            <div class="mb-1">
+              <label class="field-label" for="password">Password</label>
+              <div class="input-wrapper">
+                <input
+                  type="password"
+                  class="waggy-input"
+                  id="password"
+                  name="password"
+                  placeholder="••••••••"
+                  autocomplete="new-password"
+                  required
+                  oninput="handleStrength(this.value)"
+                >
+                <button type="button" class="toggle-pwd-btn" onclick="togglePwd('password','eye1')" tabindex="-1">
+                  <iconify-icon icon="la:eye" id="eye1"></iconify-icon>
+                </button>
+              </div>
+
+              {# Strength bar #}
+              <div class="strength-track"><div class="strength-fill" id="strength-fill"></div></div>
+              <div class="strength-label text-muted" id="strength-label"></div>
+
+              {# Requirements list #}
+              <ul class="req-list" id="req-list">
+                <li id="req-len">8+ characters</li>
+                <li id="req-upper">Uppercase letter</li>
+                <li id="req-lower">Lowercase letter</li>
+                <li id="req-digit">Number</li>
+              </ul>
+            </div>
+
+            {# ── Confirm Password ── #}
+            <div class="mb-3 mt-3">
+              <label class="field-label" for="confirm_password">Confirm Password</label>
+              <div class="input-wrapper">
+                <input
+                  type="password"
+                  class="waggy-input"
+                  id="confirm_password"
+                  name="confirm_password"
+                  placeholder="••••••••"
+                  autocomplete="new-password"
+                  required
+                  oninput="checkMatch()"
+                >
+                <button type="button" class="toggle-pwd-btn" onclick="togglePwd('confirm_password','eye2')" tabindex="-1">
+                  <iconify-icon icon="la:eye" id="eye2"></iconify-icon>
+                </button>
+              </div>
+              <div class="strength-label" id="match-label"></div>
+            </div>
+
+            {# ── Terms ── #}
+            <div class="form-check terms-check mb-4">
+              <input class="form-check-input" type="checkbox" id="terms" name="terms" required>
+              <label class="form-check-label" for="terms">
+                I agree to the
+                <a href="#">Terms of Service</a> and
+                <a href="#">Privacy Policy</a>
+              </label>
+            </div>
+
+            <button type="submit" class="btn-register">Create Account</button>
+
+          </form>
+
+          <div class="divider-line">or</div>
+
+          <p class="login-prompt">
+            Already a member?
+            <a href="{{ url_for('auth.login') }}">Sign in to your account →</a>
+          </p>
+
+        </div>{# /register-card #}
+      </div>
+
+    </div>{# /row #}
+  </div>{# /container #}
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  /* ── Password show/hide ─────────────────────────────────────── */
+  function togglePwd(fieldId, iconId) {
+    const f = document.getElementById(fieldId);
+    const i = document.getElementById(iconId);
+    const show = f.type === 'password';
+    f.type = show ? 'text' : 'password';
+    i.setAttribute('icon', show ? 'la:eye-slash' : 'la:eye');
+  }
+
+  /* ── Strength meter ─────────────────────────────────────────── */
+  const LEVELS = [
+    { pct: '0%',   bg: '#E9E9E9',  text: '',          cls: '' },
+    { pct: '25%',  bg: '#ef5350',  text: 'Weak',      cls: 'text-danger' },
+    { pct: '50%',  bg: '#ff9800',  text: 'Fair',      cls: 'text-warning' },
+    { pct: '75%',  bg: '#ffc107',  text: 'Good',      cls: 'text-warning' },
+    { pct: '100%', bg: '#4caf50',  text: 'Strong ✓',  cls: 'text-success' },
+  ];
+
+  function handleStrength(val) {
+    const checks = {
+      len:   val.length >= 8,
+      upper: /[A-Z]/.test(val),
+      lower: /[a-z]/.test(val),
+      digit: /[0-9]/.test(val),
+    };
+    const score = Object.values(checks).filter(Boolean).length;
+
+    // Update bar
+    const fill  = document.getElementById('strength-fill');
+    const label = document.getElementById('strength-label');
+    fill.style.width           = LEVELS[score].pct;
+    fill.style.backgroundColor = LEVELS[score].bg;
+    label.textContent          = val.length ? LEVELS[score].text : '';
+    label.className = 'strength-label ' + LEVELS[score].cls;
+
+    // Update requirement bullets
+    document.getElementById('req-len').classList.toggle('met',   checks.len);
+    document.getElementById('req-upper').classList.toggle('met', checks.upper);
+    document.getElementById('req-lower').classList.toggle('met', checks.lower);
+    document.getElementById('req-digit').classList.toggle('met', checks.digit);
+
+    // Re-check match if confirm has a value
+    checkMatch();
+  }
+
+  /* ── Confirm match ──────────────────────────────────────────── */
+  function checkMatch() {
+    const pwd     = document.getElementById('password').value;
+    const confirm = document.getElementById('confirm_password').value;
+    const lbl     = document.getElementById('match-label');
+
+    if (!confirm) { lbl.textContent = ''; return; }
+
+    if (pwd === confirm) {
+      lbl.textContent = 'Passwords match ✓';
+      lbl.className   = 'strength-label text-success';
+    } else {
+      lbl.textContent = 'Passwords do not match';
+      lbl.className   = 'strength-label text-danger';
+    }
+  }
+
+  /* ── Client-side: block submit if terms not checked ────────── */
+  document.getElementById('register-form').addEventListener('submit', function(e) {
+    if (!document.getElementById('terms').checked) {
+      e.preventDefault();
+      document.getElementById('terms').focus();
+    }
+  });
+</script>
+{% endblock %}
