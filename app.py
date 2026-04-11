@@ -9,6 +9,7 @@ from flask_login import LoginManager, login_required, current_user
 from models import db, User
 from auth import auth_bp
 from shop import shop_bp
+from cart import cart_bp
 
 
 def create_app() -> Flask:
@@ -35,6 +36,25 @@ def create_app() -> Flask:
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(shop_bp)
+    app.register_blueprint(cart_bp)
+
+    # ── Context processor: inject cart_count into every template ─────────────
+    @app.context_processor
+    def inject_cart_count():
+        from sqlalchemy import func
+        from flask import session
+        if current_user.is_authenticated:
+            from models import CartItem
+            result = (
+                db.session.query(func.sum(CartItem.quantity))
+                .filter_by(user_id=current_user.id)
+                .scalar()
+            )
+            count = int(result or 0)
+        else:
+            cart = session.get("cart", {})
+            count = sum(cart.values())
+        return {"cart_count": count}
 
     from flask import Blueprint
     main_bp = Blueprint("main", __name__)

@@ -28,7 +28,7 @@
 
 <body>
 
-  {# ── SVG icon sprite (same as original template) ─────────────────────── #}
+  {# ── SVG icon sprite ──────────────────────────────────────────────────── #}
   <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
     <defs>
       <symbol xmlns="http://www.w3.org/2000/svg" id="arrow-right" viewBox="0 0 24 24">
@@ -45,17 +45,17 @@
     <div class="preloader"></div>
   </div>
 
-  {# ── Offcanvas: Cart ──────────────────────────────────────────────────── #}
-  <div class="offcanvas offcanvas-end" data-bs-scroll="true" tabindex="-1" id="offcanvasCart" aria-labelledby="My Cart">
+  {# ── Offcanvas: Cart (content loaded via AJAX on open) ────────────────── #}
+  <div class="offcanvas offcanvas-end" data-bs-scroll="true" tabindex="-1"
+       id="offcanvasCart" aria-labelledby="offcanvasCartLabel">
     <div class="offcanvas-header justify-content-center">
       <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
-    <div class="offcanvas-body">
-      <h4 class="d-flex justify-content-between align-items-center mb-3">
-        <span class="text-primary">Your cart</span>
-        <span class="badge bg-primary rounded-circle pt-2">0</span>
-      </h4>
-      <p class="text-muted secondary-font">Your cart is empty.</p>
+    <div class="offcanvas-body" id="offcanvas-cart-body">
+      {# Populated dynamically on open — see script below #}
+      <div style="text-align:center; padding:2rem; color:#908F8D; font-family:var(--secondary-font); font-size:0.9rem;">
+        Loading…
+      </div>
     </div>
   </div>
 
@@ -98,7 +98,7 @@
           </div>
         </div>
 
-        {# Support info + auth (desktop) #}
+        {# Support info #}
         <div class="col-sm-8 col-lg-4 d-flex justify-content-end gap-4 align-items-center mt-4 mt-sm-0 justify-content-center justify-content-sm-end">
           <div class="support-box text-end d-none d-xl-block">
             <span class="fs-6 secondary-font text-muted">Phone</span>
@@ -111,7 +111,7 @@
         </div>
 
       </div>
-    </div>{# /container #}
+    </div>
 
     <div class="container-fluid"><hr class="m-0"></div>
 
@@ -119,7 +119,7 @@
     <div class="container">
       <nav class="main-menu d-flex navbar navbar-expand-lg">
 
-        {# Mobile: icon strip + hamburger #}
+        {# Mobile icon strip #}
         <div class="d-flex d-lg-none align-items-end mt-3">
           <ul class="d-flex justify-content-end list-unstyled m-0">
             {% if current_user.is_authenticated %}
@@ -140,9 +140,14 @@
                 <iconify-icon icon="mdi:heart" class="fs-4"></iconify-icon>
               </a>
             </li>
-            <li>
-              <a href="#" class="mx-3" data-bs-toggle="offcanvas" data-bs-target="#offcanvasCart">
+            <li class="position-relative">
+              <a href="{{ url_for('cart.view_cart') }}" class="mx-3"
+                 data-bs-toggle="offcanvas" data-bs-target="#offcanvasCart">
                 <iconify-icon icon="mdi:cart" class="fs-4 position-relative"></iconify-icon>
+                <span class="position-absolute translate-middle badge rounded-circle bg-primary pt-2 cart-badge"
+                      style="font-size:0.65rem; top:0; left:auto; right:-10px; {{ 'display:none;' if cart_count == 0 }}">
+                  {{ cart_count if cart_count > 0 else '' }}
+                </span>
               </a>
             </li>
             <li>
@@ -171,7 +176,6 @@
               <option>Toy</option>
             </select>
 
-            {# Nav links #}
             <ul class="navbar-nav menu-list list-unstyled d-flex gap-md-3 mb-0">
               <li class="nav-item">
                 <a href="{{ url_for('main.index') }}"
@@ -180,10 +184,10 @@
                 </a>
               </li>
               <li class="nav-item">
-                  <a href="{{ url_for('shop.index') }}"
-                      class="nav-link {% if request.endpoint and request.endpoint.startswith('shop.') %}active{% endif %}">
-                      Shop
-                  </a>
+                <a href="{{ url_for('shop.index') }}"
+                   class="nav-link {% if request.endpoint and request.endpoint.startswith('shop.') %}active{% endif %}">
+                  Shop
+                </a>
               </li>
               <li class="nav-item">
                 <a href="#" class="nav-link">Blog</a>
@@ -193,40 +197,50 @@
               </li>
             </ul>
 
-            {# Desktop: auth-aware user icons #}
+            {# Desktop: auth-aware icons ──────────────────────────────────── #}
             <div class="d-none d-lg-flex align-items-center">
               <ul class="d-flex justify-content-end list-unstyled m-0 align-items-center gap-1">
 
                 {% if current_user.is_authenticated %}
-                  {# ── Logged-in user dropdown ── #}
+                  {# Logged-in dropdown #}
                   <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle d-flex align-items-center gap-1 mx-2"
                        href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                       <iconify-icon icon="healthicons:person" class="fs-4"></iconify-icon>
-                      <span class="secondary-font" style="font-size: 0.9rem; font-weight: 500;">
+                      <span class="secondary-font" style="font-size:0.9rem; font-weight:500;">
                         {{ current_user.username }}
                       </span>
                       {% if current_user.is_admin %}
                         <span class="badge rounded-pill bg-primary ms-1"
-                              style="font-family: var(--secondary-font); font-size: 0.65rem; padding: 0.3em 0.6em;">
+                              style="font-family:var(--secondary-font); font-size:0.65rem; padding:0.3em 0.6em;">
                           Admin
                         </span>
                       {% endif %}
                     </a>
-                    <ul class="dropdown-menu dropdown-menu-end" style="min-width: 180px;">
+                    <ul class="dropdown-menu dropdown-menu-end" style="min-width:180px;">
                       <li>
                         <a class="dropdown-item secondary-font" href="{{ url_for('main.dashboard') }}">
                           <iconify-icon icon="la:tachometer-alt" class="me-1"></iconify-icon>
                           Dashboard
                         </a>
                       </li>
-                      {% if current_user.is_admin %}
                       <li>
-                        <a class="dropdown-item secondary-font" href="{{ url_for('shop.change_listing') }}">
-                          <iconify-icon icon="la:cogs" class="me-1"></iconify-icon>
-                          Manage Listings
+                        <a class="dropdown-item secondary-font" href="{{ url_for('cart.view_cart') }}">
+                          <iconify-icon icon="la:shopping-cart" class="me-1"></iconify-icon>
+                          My Cart
+                          {% if cart_count > 0 %}
+                            <span class="badge bg-primary rounded-pill ms-1"
+                                  style="font-size:0.65rem;">{{ cart_count }}</span>
+                          {% endif %}
                         </a>
                       </li>
+                      {% if current_user.is_admin %}
+                        <li>
+                          <a class="dropdown-item secondary-font" href="{{ url_for('shop.change_listing') }}">
+                            <iconify-icon icon="la:cogs" class="me-1"></iconify-icon>
+                            Manage Listings
+                          </a>
+                        </li>
                       {% endif %}
                       <li><hr class="dropdown-divider"></li>
                       <li>
@@ -239,42 +253,50 @@
                   </li>
 
                 {% else %}
-                  {# ── Guest: login + register links ── #}
+                  {# Guest links #}
                   <li>
                     <a href="{{ url_for('auth.login') }}" class="mx-2 nav-link d-flex align-items-center gap-1">
                       <iconify-icon icon="healthicons:person" class="fs-4"></iconify-icon>
-                      <span class="secondary-font d-none d-xl-inline" style="font-size: 0.9rem;">Login</span>
+                      <span class="secondary-font d-none d-xl-inline" style="font-size:0.9rem;">Login</span>
                     </a>
                   </li>
                   <li>
                     <a href="{{ url_for('auth.register') }}"
                        class="btn btn-primary rounded-1 mx-2"
-                       style="padding: 0.5rem 1.2rem; font-size: 0.875rem;">
+                       style="padding:0.5rem 1.2rem; font-size:0.875rem;">
                       Register
                     </a>
                   </li>
                 {% endif %}
 
-                {# Wishlist + Cart (always visible) #}
+                {# Wishlist #}
                 <li>
                   <a href="#" class="mx-2">
                     <iconify-icon icon="mdi:heart" class="fs-4"></iconify-icon>
                   </a>
                 </li>
+
+                {# Cart icon with live badge #}
                 <li class="position-relative">
-                  <a href="#" class="mx-2" data-bs-toggle="offcanvas" data-bs-target="#offcanvasCart">
-                    <iconify-icon icon="mdi:cart" class="fs-4"></iconify-icon>
+                  <a href="{{ url_for('cart.view_cart') }}" class="mx-2"
+                     data-bs-toggle="offcanvas" data-bs-target="#offcanvasCart">
+                    <iconify-icon icon="mdi:cart" class="fs-4 position-relative"></iconify-icon>
+                    <span class="position-absolute translate-middle badge rounded-circle bg-primary pt-2 cart-badge"
+                          style="font-size:0.65rem; top:2px; left:calc(100% - 4px);
+                                 {{ 'display:none;' if cart_count == 0 }}">
+                      {{ cart_count if cart_count > 0 else '' }}
+                    </span>
                   </a>
                 </li>
 
               </ul>
-            </div>{# /desktop icons #}
+            </div>
 
-          </div>{# /offcanvas-body #}
-        </div>{# /offcanvas #}
+          </div>
+        </div>
 
       </nav>
-    </div>{# /container nav #}
+    </div>
   </header>
 
   {# ── Flash messages ───────────────────────────────────────────────────── #}
@@ -283,7 +305,7 @@
       <div class="container mt-3">
         {% for category, message in messages %}
           <div class="alert alert-{{ category }} alert-dismissible fade show secondary-font"
-               style="font-size: 0.9rem;" role="alert">
+               style="font-size:0.9rem;" role="alert">
             {{ message }}
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
           </div>
@@ -334,6 +356,9 @@
               <li class="menu-item"><a href="#" class="nav-link">FAQs</a></li>
               <li class="menu-item"><a href="#" class="nav-link">Returns &amp; Refunds</a></li>
               <li class="menu-item"><a href="#" class="nav-link">Delivery Information</a></li>
+              <li class="menu-item">
+                <a href="{{ url_for('cart.view_cart') }}" class="nav-link">My Cart</a>
+              </li>
               {% if current_user.is_authenticated %}
                 <li class="menu-item"><a href="{{ url_for('main.dashboard') }}" class="nav-link">My Account</a></li>
               {% else %}
@@ -386,6 +411,86 @@
   <script src="{{ url_for('static', filename='js/plugins.js') }}"></script>
   <script src="{{ url_for('static', filename='js/script.js') }}"></script>
   <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+
+  <script>
+    // ── Mini cart: load via AJAX when offcanvas opens ──────────────────────
+    const cartOffcanvas = document.getElementById('offcanvasCart');
+    cartOffcanvas.addEventListener('show.bs.offcanvas', function () {
+      fetch('{{ url_for("cart.mini_cart") }}')
+        .then(r => r.text())
+        .then(html => {
+          document.getElementById('offcanvas-cart-body').innerHTML = html;
+        })
+        .catch(() => {
+          document.getElementById('offcanvas-cart-body').innerHTML =
+            '<p style="font-family:var(--secondary-font);color:#908F8D;text-align:center;padding:2rem;">Could not load cart.</p>';
+        });
+    });
+
+    // ── Global add-to-cart helper (used by product pages) ─────────────────
+    function waggyAddToCart(productId, quantity, btn) {
+      const fd = new FormData();
+      fd.append('product_id', productId);
+      fd.append('quantity', quantity || 1);
+
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Adding…';
+      }
+
+      fetch('{{ url_for("cart.add_to_cart") }}', { method: 'POST', body: fd })
+        .then(r => r.json())
+        .then(data => {
+          if (data.success) {
+            // Update all cart badges on the page
+            document.querySelectorAll('.cart-badge').forEach(b => {
+              b.textContent = data.count;
+              b.style.display = data.count > 0 ? '' : 'none';
+            });
+            waggyShowToast(data.message);
+          } else {
+            waggyShowToast(data.message, true);
+          }
+        })
+        .catch(() => waggyShowToast('Could not add to cart.', true))
+        .finally(() => {
+          if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<iconify-icon icon="mdi:cart-outline" style="font-size:1.1rem;vertical-align:-2px;margin-right:0.4rem;"></iconify-icon>Add to Cart';
+          }
+        });
+    }
+
+    // ── Toast helper ──────────────────────────────────────────────────────
+    let _toastEl = null;
+    let _toastTimer = null;
+    function waggyShowToast(msg, isError = false) {
+      if (!_toastEl) {
+        _toastEl = document.createElement('div');
+        _toastEl.id = 'waggy-toast';
+        _toastEl.style.cssText = [
+          'position:fixed', 'bottom:1.5rem', 'right:1.5rem',
+          'padding:0.9rem 1.4rem', 'border-radius:0.4rem',
+          'font-family:var(--secondary-font)', 'font-size:0.875rem',
+          'box-shadow:0 6px 24px rgba(0,0,0,0.18)', 'z-index:9999',
+          'max-width:320px', 'transition:opacity 0.25s,transform 0.25s',
+          'opacity:0', 'transform:translateY(6px)', 'pointer-events:none',
+          'color:#fff',
+        ].join(';');
+        document.body.appendChild(_toastEl);
+      }
+      _toastEl.textContent = msg;
+      _toastEl.style.background = isError ? '#c0392b' : '#41403E';
+      _toastEl.style.opacity = '1';
+      _toastEl.style.transform = 'translateY(0)';
+      clearTimeout(_toastTimer);
+      _toastTimer = setTimeout(() => {
+        _toastEl.style.opacity = '0';
+        _toastEl.style.transform = 'translateY(6px)';
+      }, 3000);
+    }
+  </script>
+
   {% block extra_js %}{% endblock %}
 
 </body>

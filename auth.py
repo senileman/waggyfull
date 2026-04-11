@@ -35,7 +35,6 @@ _EMAIL_RE    = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 
 def _validate_username(value: str) -> str | None:
-    """Return an error string or None if valid."""
     if not value:
         return "Username is required."
     if not _USERNAME_RE.match(value):
@@ -69,7 +68,6 @@ def _validate_password(value: str) -> str | None:
 
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
-    """Display and process the login form."""
     if current_user.is_authenticated:
         return redirect(url_for("main.dashboard"))
 
@@ -82,7 +80,6 @@ def login():
             flash("Please fill in all fields.", "danger")
             return render_template("auth/login.html", identifier=identifier)
 
-        # Accept either email or username
         user = (
             User.query.filter_by(email=identifier.lower()).first()
             or User.query.filter_by(username=identifier).first()
@@ -96,14 +93,17 @@ def login():
             flash("Your account has been suspended. Please contact support.", "warning")
             return render_template("auth/login.html")
 
-        # Success — record login time and create session
         user.last_login_at = datetime.utcnow()
         db.session.commit()
 
         login_user(user, remember=remember)
+
+        # Merge any guest session cart into the user's persistent DB cart
+        from cart import merge_session_cart
+        merge_session_cart(user)
+
         flash(f"Welcome back, {user.username}! 🐾", "success")
 
-        # Honor the 'next' redirect from @login_required
         next_page = request.args.get("next")
         return redirect(next_page or url_for("main.dashboard"))
 
@@ -112,7 +112,6 @@ def login():
 
 @auth_bp.route("/register", methods=["GET", "POST"])
 def register():
-    """Display and process the registration form."""
     if current_user.is_authenticated:
         return redirect(url_for("main.dashboard"))
 
@@ -122,7 +121,6 @@ def register():
         password = request.form.get("password", "")
         confirm  = request.form.get("confirm_password", "")
 
-        # Collect all errors before returning so the user sees them all at once
         errors = []
 
         err = _validate_username(username)
@@ -141,7 +139,6 @@ def register():
             errors.append("Passwords do not match.")
 
         if not errors:
-            # Check uniqueness only if all format checks pass (avoids misleading messages)
             if User.query.filter_by(username=username).first():
                 errors.append("That username is already taken.")
             if User.query.filter_by(email=email).first():
@@ -156,7 +153,6 @@ def register():
                 email=email,
             )
 
-        # All good — create the new user
         new_user = User(username=username, email=email, role="customer")
         new_user.set_password(password)
         db.session.add(new_user)
@@ -171,7 +167,6 @@ def register():
 @auth_bp.route("/logout")
 @login_required
 def logout():
-    """Log the current user out and return to the homepage."""
     logout_user()
     flash("You've been logged out. See you soon! 🐾", "info")
     return redirect(url_for("main.index"))

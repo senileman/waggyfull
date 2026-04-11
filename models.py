@@ -60,17 +60,17 @@ class Product(db.Model):
 
     __tablename__ = "products"
 
-    id          = db.Column(db.Integer,     primary_key=True)
-    name        = db.Column(db.String(120), nullable=False)
-    category    = db.Column(db.String(30),  nullable=False, default="misc")
-    description = db.Column(db.Text,        nullable=False, default="")
+    id             = db.Column(db.Integer,     primary_key=True)
+    name           = db.Column(db.String(120), nullable=False)
+    category       = db.Column(db.String(30),  nullable=False, default="misc")
+    description    = db.Column(db.Text,        nullable=False, default="")
     image_filename = db.Column(db.String(256), nullable=True)
-    price       = db.Column(db.Float,       nullable=False, default=0.0)
-    is_active   = db.Column(db.Boolean,     nullable=False, default=True)
-    stock       = db.Column(db.Integer,     nullable=False, default=0)
-    created_at  = db.Column(db.DateTime,    nullable=False, default=datetime.utcnow)
-    updated_at  = db.Column(db.DateTime,    nullable=False, default=datetime.utcnow,
-                            onupdate=datetime.utcnow)
+    price          = db.Column(db.Float,       nullable=False, default=0.0)
+    is_active      = db.Column(db.Boolean,     nullable=False, default=True)
+    stock          = db.Column(db.Integer,     nullable=False, default=0)
+    created_at     = db.Column(db.DateTime,    nullable=False, default=datetime.utcnow)
+    updated_at     = db.Column(db.DateTime,    nullable=False, default=datetime.utcnow,
+                               onupdate=datetime.utcnow)
 
     @property
     def category_label(self) -> str:
@@ -84,3 +84,31 @@ class Product(db.Model):
 
     def __repr__(self) -> str:
         return f"<Product {self.name!r} [{self.category}] ${self.price:.2f}>"
+
+
+class CartItem(db.Model):
+    """
+    Persists shopping-cart lines for authenticated users.
+    Guest carts are stored in the Flask session instead.
+
+    A (user_id, product_id) pair is unique — adding the same product
+    again increments the existing quantity rather than creating a new row.
+    """
+
+    __tablename__ = "cart_items"
+
+    id         = db.Column(db.Integer,  primary_key=True)
+    user_id    = db.Column(db.Integer,  db.ForeignKey("users.id"),    nullable=False)
+    product_id = db.Column(db.Integer,  db.ForeignKey("products.id"), nullable=False)
+    quantity   = db.Column(db.Integer,  nullable=False, default=1)
+    added_at   = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+    user    = db.relationship("User",    backref=db.backref("cart_items", lazy=True))
+    product = db.relationship("Product", lazy="joined")
+
+    __table_args__ = (
+        db.UniqueConstraint("user_id", "product_id", name="uq_cart_user_product"),
+    )
+
+    def __repr__(self) -> str:
+        return f"<CartItem user={self.user_id} product={self.product_id} qty={self.quantity}>"

@@ -41,24 +41,54 @@
     white-space: pre-line;
   }
 
+  /* ── Quantity selector ───────────────────────── */
+  .qty-row {
+    display: flex; align-items: center; gap: 0.75rem;
+    margin-bottom: 1.25rem;
+  }
+  .qty-lbl {
+    font-family: var(--secondary-font);
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #908F8D;
+    flex-shrink: 0;
+  }
+  .detail-stepper {
+    display: inline-flex; align-items: center;
+    border: 1px solid rgba(65,64,62,0.18);
+    border-radius: 0.25rem; overflow: hidden;
+  }
+  .detail-stepper button {
+    width: 38px; height: 38px;
+    border: none; background: transparent;
+    cursor: pointer; font-size: 1.1rem; color: #908F8D;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s;
+  }
+  .detail-stepper button:hover { background: #F9F3EC; color: var(--bs-body-color); }
+  .detail-stepper input {
+    width: 52px; height: 38px;
+    border: none;
+    border-left: 1px solid rgba(65,64,62,0.12);
+    border-right: 1px solid rgba(65,64,62,0.12);
+    text-align: center;
+    font-family: var(--secondary-font); font-size: 0.95rem;
+    background: #fff; color: var(--bs-body-color); outline: none;
+    -moz-appearance: textfield;
+  }
+  .detail-stepper input::-webkit-inner-spin-button,
+  .detail-stepper input::-webkit-outer-spin-button { -webkit-appearance: none; }
+
   /* ── Stock indicator ────────────────────────── */
   .stock-indicator { margin-bottom: 1.25rem; }
   .stock-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.45rem;
-    font-family: var(--secondary-font);
-    font-size: 0.82rem;
-    font-weight: 500;
-    padding: 0.35rem 0.85rem;
-    border-radius: 2rem;
-    letter-spacing: 0.02em;
+    display: inline-flex; align-items: center; gap: 0.45rem;
+    font-family: var(--secondary-font); font-size: 0.82rem; font-weight: 500;
+    padding: 0.35rem 0.85rem; border-radius: 2rem; letter-spacing: 0.02em;
   }
-  .stock-dot {
-    width: 7px; height: 7px;
-    border-radius: 50%;
-    flex-shrink: 0;
-  }
+  .stock-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
   .stock-pill.in  { background: rgba(90,171,90,0.12); color: #2d7a2d; }
   .stock-pill.in  .stock-dot { background: #5aab5a; }
   .stock-pill.low { background: rgba(255,152,0,0.12); color: #a06000; }
@@ -77,24 +107,20 @@
     border: none;
     border-radius: 0.25rem;
     font-family: var(--secondary-font);
-    font-size: 0.9rem;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    cursor: pointer;
-    transition: background 0.2s;
+    font-size: 0.9rem; font-weight: 500;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    cursor: pointer; transition: background 0.2s;
   }
   .btn-cart-lg:hover { background: #2e2d2b; color: #fff; }
+  .btn-cart-lg:disabled {
+    opacity: 0.5; cursor: not-allowed; background: #41403E;
+  }
   .btn-wish-lg {
     padding: 1rem 1.2rem;
     border: 1px solid rgba(65,64,62,0.20);
-    border-radius: 0.25rem;
-    background: transparent;
-    cursor: pointer;
-    color: #908F8D;
-    font-size: 1.3rem;
-    transition: all 0.2s;
-    display: flex; align-items: center;
+    border-radius: 0.25rem; background: transparent;
+    cursor: pointer; color: #908F8D; font-size: 1.3rem;
+    transition: all 0.2s; display: flex; align-items: center;
   }
   .btn-wish-lg:hover { background: #fdf5ec; border-color: #DEAD6F; color: #DEAD6F; }
 
@@ -102,24 +128,17 @@
   .detail-meta {
     border-top: 1px solid rgba(65,64,62,0.08);
     padding-top: 1.5rem;
-    font-family: var(--secondary-font);
-    font-size: 0.85rem;
-    color: #908F8D;
+    font-family: var(--secondary-font); font-size: 0.85rem; color: #908F8D;
   }
   .detail-meta span { color: var(--bs-body-color); font-weight: 500; }
 
   /* ── Admin quick-edit bar ────────────────────── */
   .admin-product-bar {
-    background: #FAEEDA;
-    border: 1px solid rgba(222,173,111,0.4);
-    border-radius: 0.5rem;
-    padding: 0.75rem 1.2rem;
+    background: #FAEEDA; border: 1px solid rgba(222,173,111,0.4);
+    border-radius: 0.5rem; padding: 0.75rem 1.2rem;
     display: flex; align-items: center; justify-content: space-between;
-    flex-wrap: wrap; gap: 0.5rem;
-    margin-bottom: 2rem;
-    font-family: var(--secondary-font);
-    font-size: 0.85rem;
-    color: #6b5a2e;
+    flex-wrap: wrap; gap: 0.5rem; margin-bottom: 2rem;
+    font-family: var(--secondary-font); font-size: 0.85rem; color: #6b5a2e;
   }
   .admin-product-bar a { color: #6b5a2e; font-weight: 500; margin-right: 1rem; }
   .admin-product-bar a:hover { color: #41403E; }
@@ -204,34 +223,51 @@
         </div>
       {% endif %}
 
+      {# ── Stock indicator ─────────────────────────────────────────────── #}
+      <div class="stock-indicator">
+        {% if product.stock == 0 %}
+          <span class="stock-pill out">
+            <span class="stock-dot"></span>Out of stock
+          </span>
+        {% elif product.stock <= 5 %}
+          <span class="stock-pill low">
+            <span class="stock-dot"></span>Only {{ product.stock }} left
+          </span>
+        {% else %}
+          <span class="stock-pill in">
+            <span class="stock-dot"></span>In stock ({{ product.stock }} available)
+          </span>
+        {% endif %}
+      </div>
+
+      {# ── Quantity selector ────────────────────────────────────────────── #}
+      {% if product.stock > 0 %}
+        <div class="qty-row">
+          <span class="qty-lbl">Qty</span>
+          <div class="detail-stepper">
+            <button type="button" onclick="detailStep(-1)">−</button>
+            <input type="number" id="detail-qty" value="1" min="1" max="{{ product.stock }}">
+            <button type="button" onclick="detailStep(1)">+</button>
+          </div>
+        </div>
+      {% endif %}
+
+      {# ── Actions ─────────────────────────────────────────────────────── #}
       <div class="detail-actions">
-        <button class="btn-cart-lg" {% if product.stock == 0 %}disabled style="opacity:0.5; cursor:not-allowed;"{% endif %}>
+        <button
+          id="btn-add-cart"
+          class="btn-cart-lg"
+          {% if product.stock == 0 %}disabled{% endif %}
+          {% if product.stock > 0 %}
+            onclick="waggyAddToCart({{ product.id }}, parseInt(document.getElementById('detail-qty').value), this)"
+          {% endif %}
+        >
           <iconify-icon icon="mdi:cart-outline" style="font-size:1.1rem; vertical-align:-2px; margin-right:0.4rem;"></iconify-icon>
           {% if product.stock == 0 %}Out of Stock{% else %}Add to Cart{% endif %}
         </button>
         <button class="btn-wish-lg" title="Add to wishlist">
           <iconify-icon icon="fluent:heart-28-regular"></iconify-icon>
         </button>
-      </div>
-
-      {# ── Stock indicator ─────────────────────────────────────────────── #}
-      <div class="stock-indicator mb-3">
-        {% if product.stock == 0 %}
-          <span class="stock-pill out">
-            <span class="stock-dot"></span>
-            Out of stock
-          </span>
-        {% elif product.stock <= 5 %}
-          <span class="stock-pill low">
-            <span class="stock-dot"></span>
-            Only {{ product.stock }} left
-          </span>
-        {% else %}
-          <span class="stock-pill in">
-            <span class="stock-dot"></span>
-            In stock ({{ product.stock }} available)
-          </span>
-        {% endif %}
       </div>
 
       <div class="detail-meta">
@@ -267,4 +303,15 @@
   {% endif %}
 
 </div>{# /container #}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function detailStep(delta) {
+    const input = document.getElementById('detail-qty');
+    if (!input) return;
+    const max = parseInt(input.max) || 99;
+    input.value = Math.max(1, Math.min(max, parseInt(input.value) + delta));
+  }
+</script>
 {% endblock %}
