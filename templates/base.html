@@ -45,14 +45,13 @@
     <div class="preloader"></div>
   </div>
 
-  {# ── Offcanvas: Cart (content loaded via AJAX on open) ────────────────── #}
+  {# ── Offcanvas: Cart ──────────────────────────────────────────────────── #}
   <div class="offcanvas offcanvas-end" data-bs-scroll="true" tabindex="-1"
        id="offcanvasCart" aria-labelledby="offcanvasCartLabel">
     <div class="offcanvas-header justify-content-center">
       <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
     <div class="offcanvas-body" id="offcanvas-cart-body">
-      {# Populated dynamically on open — see script below #}
       <div style="text-align:center; padding:2rem; color:#908F8D; font-family:var(--secondary-font); font-size:0.9rem;">
         Loading…
       </div>
@@ -80,14 +79,12 @@
     <div class="container py-2">
       <div class="row py-4 pb-0 pb-sm-4 align-items-center">
 
-        {# Logo #}
         <div class="col-sm-4 col-lg-3 text-center text-sm-start">
           <a href="{{ url_for('main.index') }}">
             <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Waggy" class="img-fluid">
           </a>
         </div>
 
-        {# Search bar (desktop) #}
         <div class="col-sm-6 offset-sm-2 offset-md-0 col-lg-5 d-none d-lg-block">
           <div class="search-bar border rounded-2 px-3 border-dark-subtle">
             <form class="text-center d-flex align-items-center" action="" method="get">
@@ -98,7 +95,6 @@
           </div>
         </div>
 
-        {# Support info #}
         <div class="col-sm-8 col-lg-4 d-flex justify-content-end gap-4 align-items-center mt-4 mt-sm-0 justify-content-center justify-content-sm-end">
           <div class="support-box text-end d-none d-xl-block">
             <span class="fs-6 secondary-font text-muted">Phone</span>
@@ -115,11 +111,9 @@
 
     <div class="container-fluid"><hr class="m-0"></div>
 
-    {# ── Main Navigation ─────────────────────────────────────────────── #}
     <div class="container">
       <nav class="main-menu d-flex navbar navbar-expand-lg">
 
-        {# Mobile icon strip #}
         <div class="d-flex d-lg-none align-items-end mt-3">
           <ul class="d-flex justify-content-end list-unstyled m-0">
             {% if current_user.is_authenticated %}
@@ -162,7 +156,6 @@
           <span class="navbar-toggler-icon"></span>
         </button>
 
-        {# Offcanvas nav (mobile) #}
         <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasNavbar">
           <div class="offcanvas-header justify-content-center">
             <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
@@ -197,12 +190,10 @@
               </li>
             </ul>
 
-            {# Desktop: auth-aware icons ──────────────────────────────────── #}
             <div class="d-none d-lg-flex align-items-center">
               <ul class="d-flex justify-content-end list-unstyled m-0 align-items-center gap-1">
 
                 {% if current_user.is_authenticated %}
-                  {# Logged-in dropdown #}
                   <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle d-flex align-items-center gap-1 mx-2"
                        href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -253,7 +244,6 @@
                   </li>
 
                 {% else %}
-                  {# Guest links #}
                   <li>
                     <a href="{{ url_for('auth.login') }}" class="mx-2 nav-link d-flex align-items-center gap-1">
                       <iconify-icon icon="healthicons:person" class="fs-4"></iconify-icon>
@@ -269,14 +259,12 @@
                   </li>
                 {% endif %}
 
-                {# Wishlist #}
                 <li>
                   <a href="#" class="mx-2">
                     <iconify-icon icon="mdi:heart" class="fs-4"></iconify-icon>
                   </a>
                 </li>
 
-                {# Cart icon with live badge #}
                 <li class="position-relative">
                   <a href="{{ url_for('cart.view_cart') }}" class="mx-2"
                      data-bs-toggle="offcanvas" data-bs-target="#offcanvasCart">
@@ -427,9 +415,76 @@
         });
     });
 
+    // ── Mini cart: confirm / cancel / execute remove ───────────────────────
+    // These MUST live here rather than inside _mini_cart.html because
+    // scripts injected via innerHTML are not executed by the browser.
+
+    function miniConfirmRemove(pid, productName) {
+      // Close any other open confirmations first
+      document.querySelectorAll('.mini-confirm.show').forEach(function(el) {
+        if (el.id !== 'mini-confirm-' + pid) el.classList.remove('show');
+      });
+      var overlay = document.getElementById('mini-confirm-' + pid);
+      if (overlay) overlay.classList.add('show');
+    }
+
+    function miniCancelConfirm(pid) {
+      var overlay = document.getElementById('mini-confirm-' + pid);
+      if (overlay) overlay.classList.remove('show');
+    }
+
+    function miniDoRemove(pid) {
+      var overlay = document.getElementById('mini-confirm-' + pid);
+      if (overlay) overlay.classList.remove('show');
+
+      var fd = new FormData();
+      fd.append('product_id', pid);
+
+      fetch('{{ url_for("cart.remove_from_cart") }}', { method: 'POST', body: fd })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (!data.success) return;
+
+          var row = document.getElementById('mini-row-' + pid);
+          if (row) {
+            row.style.opacity = '0';
+            row.style.transform = 'translateX(8px)';
+            setTimeout(function() {
+              row.remove();
+
+              var totalEl = document.getElementById('mini-total');
+              if (totalEl) totalEl.textContent = '$' + data.total;
+
+              if (data.count === 0) {
+                var body = document.getElementById('offcanvas-cart-body');
+                if (body) {
+                  body.innerHTML =
+                    '<div style="text-align:center;padding:2.5rem 1rem;">' +
+                      '<iconify-icon icon="la:shopping-cart" ' +
+                        'style="font-size:3rem;color:#D9D9D8;display:block;margin-bottom:1rem;">' +
+                      '</iconify-icon>' +
+                      '<p style="font-family:var(--secondary-font);color:#908F8D;font-size:0.9rem;">' +
+                        'Your cart is empty.' +
+                      '</p>' +
+                    '</div>';
+                }
+              }
+
+              document.querySelectorAll('.cart-badge').forEach(function(b) {
+                b.textContent = data.count;
+                b.style.display = data.count > 0 ? '' : 'none';
+              });
+            }, 250);
+          }
+        })
+        .catch(function() {
+          waggyShowToast('Could not remove item.', true);
+        });
+    }
+
     // ── Global add-to-cart helper (used by product pages) ─────────────────
     function waggyAddToCart(productId, quantity, btn) {
-      const fd = new FormData();
+      var fd = new FormData();
       fd.append('product_id', productId);
       fd.append('quantity', quantity || 1);
 
@@ -439,11 +494,10 @@
       }
 
       fetch('{{ url_for("cart.add_to_cart") }}', { method: 'POST', body: fd })
-        .then(r => r.json())
-        .then(data => {
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
           if (data.success) {
-            // Update all cart badges on the page
-            document.querySelectorAll('.cart-badge').forEach(b => {
+            document.querySelectorAll('.cart-badge').forEach(function(b) {
               b.textContent = data.count;
               b.style.display = data.count > 0 ? '' : 'none';
             });
@@ -452,8 +506,8 @@
             waggyShowToast(data.message, true);
           }
         })
-        .catch(() => waggyShowToast('Could not add to cart.', true))
-        .finally(() => {
+        .catch(function() { waggyShowToast('Could not add to cart.', true); })
+        .finally(function() {
           if (btn) {
             btn.disabled = false;
             btn.innerHTML = '<iconify-icon icon="mdi:cart-outline" style="font-size:1.1rem;vertical-align:-2px;margin-right:0.4rem;"></iconify-icon>Add to Cart';
@@ -462,9 +516,9 @@
     }
 
     // ── Toast helper ──────────────────────────────────────────────────────
-    let _toastEl = null;
-    let _toastTimer = null;
-    function waggyShowToast(msg, isError = false) {
+    var _toastEl = null;
+    var _toastTimer = null;
+    function waggyShowToast(msg, isError) {
       if (!_toastEl) {
         _toastEl = document.createElement('div');
         _toastEl.id = 'waggy-toast';
@@ -484,7 +538,7 @@
       _toastEl.style.opacity = '1';
       _toastEl.style.transform = 'translateY(0)';
       clearTimeout(_toastTimer);
-      _toastTimer = setTimeout(() => {
+      _toastTimer = setTimeout(function() {
         _toastEl.style.opacity = '0';
         _toastEl.style.transform = 'translateY(6px)';
       }, 3000);

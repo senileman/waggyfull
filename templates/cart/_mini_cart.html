@@ -1,6 +1,9 @@
 {# templates/cart/_mini_cart.html
    Rendered by GET /cart/mini and injected into the offcanvas body.
    No {% extends %} — this is a partial fragment only.
+   NOTE: all JS functions (miniConfirmRemove / miniCancelConfirm / miniDoRemove)
+         live in base.html because scripts inside innerHTML-injected HTML
+         are silently ignored by the browser.
 #}
 <style>
   .mini-item {
@@ -10,6 +13,7 @@
     align-items: center;
     padding: 0.85rem 0;
     border-bottom: 1px solid rgba(65,64,62,0.07);
+    transition: opacity 0.25s, transform 0.25s;
   }
   .mini-item:last-child { border-bottom: none; }
   .mini-thumb {
@@ -41,11 +45,26 @@
     text-align: right;
   }
   .mini-btn-remove {
-    background: none; border: none; cursor: pointer;
-    color: #CACACA; font-size: 0.95rem; padding: 0 0 0 0.4rem;
-    transition: color 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    background: none;
+    border: 1px solid rgba(192,57,43,0.25);
+    border-radius: 0.25rem;
+    cursor: pointer;
+    color: #c0392b;
+    font-family: var(--secondary-font);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    padding: 0.25rem 0.5rem;
+    margin-top: 0.3rem;
+    transition: background 0.2s, color 0.2s;
   }
-  .mini-btn-remove:hover { color: #c0392b; }
+  .mini-btn-remove:hover { background: #c0392b; color: #fff; border-color: #c0392b; }
+  .mini-btn-remove iconify-icon { font-size: 0.85rem; }
+
   .mini-total-row {
     display: flex; justify-content: space-between; align-items: baseline;
     padding: 0.85rem 0 0;
@@ -99,6 +118,58 @@
     transition: background 0.2s;
   }
   .btn-checkout-mini:hover { background: #2e2d2b; }
+
+  /* ── Per-row inline confirmation overlay ─────────────────────── */
+  .mini-confirm {
+    display: none;
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.97);
+    border-radius: 0.4rem;
+    z-index: 10;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    text-align: center;
+    padding: 1rem;
+    gap: 0.6rem;
+  }
+  .mini-confirm.show { display: flex; }
+  .mini-confirm p {
+    font-family: var(--secondary-font);
+    font-size: 0.82rem;
+    color: #41403E;
+    margin: 0;
+    line-height: 1.5;
+  }
+  .mini-confirm p strong { display: block; color: #c0392b; margin-bottom: 0.15rem; }
+  .mini-confirm-actions { display: flex; gap: 0.5rem; }
+  .mini-confirm-cancel {
+    padding: 0.4rem 0.85rem;
+    border: 1px solid rgba(65,64,62,0.2);
+    border-radius: 0.25rem;
+    background: transparent;
+    font-family: var(--secondary-font);
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: #908F8D;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .mini-confirm-cancel:hover { background: #F9F3EC; color: #41403E; }
+  .mini-confirm-ok {
+    padding: 0.4rem 0.85rem;
+    background: #c0392b;
+    border: 1px solid #c0392b;
+    border-radius: 0.25rem;
+    font-family: var(--secondary-font);
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: #fff;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .mini-confirm-ok:hover { background: #a93226; }
 </style>
 
 {% if items %}
@@ -109,7 +180,7 @@
   </h4>
 
   {% for item in items %}
-    <div class="mini-item" id="mini-row-{{ item.product.id }}">
+    <div class="mini-item" id="mini-row-{{ item.product.id }}" style="position:relative;">
 
       <img
         class="mini-thumb"
@@ -124,15 +195,28 @@
         <div class="mini-meta">
           Qty: {{ item.quantity }} &nbsp;·&nbsp; ${{ "%.2f" | format(item.product.price) }} each
         </div>
+        <button type="button"
+                class="mini-btn-remove"
+                onclick="miniConfirmRemove({{ item.product.id }}, '{{ item.product.name | replace("'", "\\'") }}')">
+          <iconify-icon icon="la:trash-alt"></iconify-icon>
+          Remove
+        </button>
       </div>
 
-      <div style="display:flex; flex-direction:column; align-items:flex-end; gap:0.2rem;">
-        <div class="mini-price">${{ "%.2f" | format(item.product.price * item.quantity) }}</div>
-        <button type="button" class="mini-btn-remove"
-                title="Remove"
-                onclick="miniRemove({{ item.product.id }})">
-          <iconify-icon icon="la:trash-alt"></iconify-icon>
-        </button>
+      <div class="mini-price">${{ "%.2f" | format(item.product.price * item.quantity) }}</div>
+
+      {# Inline confirm overlay — shown/hidden by miniConfirmRemove() in base.html #}
+      <div class="mini-confirm" id="mini-confirm-{{ item.product.id }}">
+        <p>
+          <strong>Remove item?</strong>
+          {{ item.product.name }}
+        </p>
+        <div class="mini-confirm-actions">
+          <button class="mini-confirm-cancel"
+                  onclick="miniCancelConfirm({{ item.product.id }})">Keep</button>
+          <button class="mini-confirm-ok"
+                  onclick="miniDoRemove({{ item.product.id }})">Remove</button>
+        </div>
       </div>
 
     </div>
@@ -165,35 +249,3 @@
   </div>
 
 {% endif %}
-
-<script>
-  function miniRemove(pid) {
-    const fd = new FormData();
-    fd.append('product_id', pid);
-    fetch('{{ url_for("cart.remove_from_cart") }}', { method: 'POST', body: fd })
-      .then(r => r.json())
-      .then(data => {
-        if (data.success) {
-          const row = document.getElementById('mini-row-' + pid);
-          if (row) {
-            row.style.transition = 'opacity 0.25s';
-            row.style.opacity = '0';
-            setTimeout(() => {
-              row.remove();
-              const totalEl = document.getElementById('mini-total');
-              if (totalEl) totalEl.textContent = '$' + data.total;
-              if (data.count === 0) {
-                document.getElementById('offcanvasCart')
-                  .querySelector('.offcanvas-body')
-                  .innerHTML = '<div style="text-align:center;padding:2.5rem 1rem;"><iconify-icon icon="la:shopping-cart" style="font-size:3rem;color:#D9D9D8;display:block;margin-bottom:1rem;"></iconify-icon><p style="font-family:var(--secondary-font);color:#908F8D;font-size:0.9rem;">Your cart is empty.</p></div>';
-              }
-              document.querySelectorAll('.cart-badge').forEach(b => {
-                b.textContent = data.count;
-                b.style.display = data.count > 0 ? '' : 'none';
-              });
-            }, 250);
-          }
-        }
-      });
-  }
-</script>

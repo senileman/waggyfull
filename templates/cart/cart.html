@@ -19,6 +19,7 @@
     align-items: center;
     padding: 1.25rem 0;
     border-bottom: 1px solid rgba(65,64,62,0.07);
+    transition: opacity 0.3s, transform 0.3s;
   }
   .cart-item:last-child { border-bottom: none; }
 
@@ -104,16 +105,29 @@
 
   /* ── Remove button ───────────────────────────────────────────── */
   .btn-remove {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
     background: none;
-    border: none;
+    border: 1px solid rgba(192,57,43,0.25);
+    border-radius: 0.25rem;
     cursor: pointer;
-    color: #CACACA;
-    font-size: 1.1rem;
-    padding: 0.3rem;
-    transition: color 0.2s;
-    display: flex; align-items: center;
+    color: #c0392b;
+    font-family: var(--secondary-font);
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 0.4rem 0.7rem;
+    transition: background 0.2s, border-color 0.2s, color 0.2s;
+    white-space: nowrap;
   }
-  .btn-remove:hover { color: #c0392b; }
+  .btn-remove:hover {
+    background: #c0392b;
+    border-color: #c0392b;
+    color: #fff;
+  }
+  .btn-remove iconify-icon { font-size: 0.95rem; }
 
   /* ── Cart container card ─────────────────────────────────────── */
   .cart-card {
@@ -226,16 +240,103 @@
   }
   #cart-toast.show { opacity: 1; transform: translateY(0); }
 
+  /* ── Confirmation modal ──────────────────────────────────────── */
+  .confirm-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 1055;
+    align-items: center;
+    justify-content: center;
+    animation: backdropFadeIn 0.2s ease;
+  }
+  .confirm-backdrop.show { display: flex; }
+
+  @keyframes backdropFadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  .confirm-modal {
+    background: #fff;
+    border-radius: 0.75rem;
+    padding: 2rem 2rem 1.5rem;
+    max-width: 380px;
+    width: 90%;
+    box-shadow: 0 16px 56px rgba(0,0,0,0.2);
+    animation: modalSlideUp 0.2s ease;
+  }
+
+  @keyframes modalSlideUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .confirm-modal__icon {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: rgba(192,57,43,0.1);
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 1rem;
+  }
+  .confirm-modal__icon iconify-icon { font-size: 1.5rem; color: #c0392b; }
+  .confirm-modal h5 {
+    font-size: 1.1rem;
+    font-weight: 400;
+    margin-bottom: 0.5rem;
+  }
+  .confirm-modal p {
+    font-family: var(--secondary-font);
+    font-size: 0.875rem;
+    color: #908F8D;
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+  }
+  .confirm-modal p strong { color: var(--bs-body-color); }
+  .confirm-modal__actions {
+    display: flex;
+    gap: 0.6rem;
+    justify-content: flex-end;
+  }
+  .btn-confirm-cancel {
+    padding: 0.6rem 1.2rem;
+    background: transparent;
+    border: 1px solid rgba(65,64,62,0.2);
+    border-radius: 0.25rem;
+    font-family: var(--secondary-font);
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #908F8D;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-confirm-cancel:hover { background: #F9F3EC; color: var(--bs-body-color); border-color: rgba(65,64,62,0.35); }
+  .btn-confirm-remove {
+    padding: 0.6rem 1.2rem;
+    background: #c0392b;
+    border: 1px solid #c0392b;
+    border-radius: 0.25rem;
+    font-family: var(--secondary-font);
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #fff;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-confirm-remove:hover { background: #a93226; border-color: #a93226; }
+
   /* ── Responsive tweaks ───────────────────────────────────────── */
   @media (max-width: 575px) {
     .cart-item {
-      grid-template-columns: 64px 1fr auto;
-      grid-template-rows: auto auto;
+      grid-template-columns: 64px 1fr;
+      grid-template-rows: auto auto auto;
+      row-gap: 0.6rem;
     }
     .cart-item__price { display: none; }
-    .cart-item__line-total { grid-column: 3; grid-row: 1; }
+    .cart-item__line-total { grid-column: 2; justify-self: end; }
     .qty-stepper { grid-column: 2; }
-    .btn-remove { grid-column: 3; grid-row: 2; justify-self: end; }
+    .btn-remove { grid-column: 1 / -1; justify-self: start; }
     .cart-card { padding: 1rem; }
   }
 </style>
@@ -299,17 +400,17 @@
                 {# Quantity stepper #}
                 <div class="qty-stepper">
                   <button type="button" class="qty-btn"
-                          onclick="stepQty({{ item.product.id }}, -1)">−</button>
+                          onclick="stepQty({{ item.product.id }}, -1, '{{ item.product.name | replace("'", "\\'") }}')">−</button>
                   <input
                     type="number"
                     class="qty-input"
                     id="qty-{{ item.product.id }}"
                     value="{{ item.quantity }}"
-                    min="1" max="99"
-                    onchange="setQty({{ item.product.id }}, this.value)"
+                    min="0" max="99"
+                    onchange="handleQtyChange({{ item.product.id }}, this.value, '{{ item.product.name | replace("'", "\\'") }}')"
                   >
                   <button type="button" class="qty-btn"
-                          onclick="stepQty({{ item.product.id }}, 1)">+</button>
+                          onclick="stepQty({{ item.product.id }}, 1, '{{ item.product.name | replace("'", "\\'") }}')">+</button>
                 </div>
 
                 {# Line total #}
@@ -319,9 +420,9 @@
 
                 {# Remove #}
                 <button type="button" class="btn-remove"
-                        title="Remove"
-                        onclick="removeItem({{ item.product.id }})">
+                        onclick="confirmRemove({{ item.product.id }}, '{{ item.product.name | replace("'", "\\'") }}')">
                   <iconify-icon icon="la:trash-alt"></iconify-icon>
+                  Remove
                 </button>
 
               </div>
@@ -402,6 +503,21 @@
 {# Toast notification #}
 <div id="cart-toast"></div>
 
+{# ── Confirmation modal ────────────────────────────────────────────────────── #}
+<div class="confirm-backdrop" id="confirmBackdrop">
+  <div class="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+    <div class="confirm-modal__icon">
+      <iconify-icon icon="la:trash-alt"></iconify-icon>
+    </div>
+    <h5 id="confirmTitle">Remove item?</h5>
+    <p id="confirmMessage">Are you sure you want to remove <strong id="confirmProductName"></strong> from your cart?</p>
+    <div class="confirm-modal__actions">
+      <button type="button" class="btn-confirm-cancel" onclick="closeConfirm()">Keep it</button>
+      <button type="button" class="btn-confirm-remove" onclick="executeRemove()">Yes, remove</button>
+    </div>
+  </div>
+</div>
+
 {% endblock %}
 
 {% block extra_js %}
@@ -412,6 +528,7 @@
     {% endfor %}
   };
 
+  // ── Toast ─────────────────────────────────────────────────────────────────
   function showToast(msg, error = false) {
     const t = document.getElementById('cart-toast');
     t.textContent = msg;
@@ -428,18 +545,38 @@
     });
   }
 
-  function stepQty(pid, delta) {
+  // ── Quantity stepper ──────────────────────────────────────────────────────
+  function stepQty(pid, delta, productName) {
     const input = document.getElementById('qty-' + pid);
-    const newVal = Math.max(1, Math.min(99, parseInt(input.value) + delta));
-    input.value = newVal;
-    setQty(pid, newVal);
+    const current = parseInt(input.value) || 1;
+    const newVal = current + delta;
+
+    if (newVal <= 0) {
+      // Stepping down to zero means remove — ask first
+      confirmRemove(pid, productName);
+      return;
+    }
+
+    input.value = Math.min(99, newVal);
+    applyQtyUpdate(pid, input.value);
   }
 
-  function setQty(pid, val) {
-    const qty = Math.max(1, Math.min(99, parseInt(val) || 1));
-    document.getElementById('qty-' + pid).value = qty;
+  // Called when the user manually edits the input field and leaves it
+  function handleQtyChange(pid, val, productName) {
+    const qty = parseInt(val);
+    if (isNaN(qty) || qty <= 0) {
+      // Restore the visual immediately; the real action comes from the confirm
+      document.getElementById('qty-' + pid).value = 1;
+      confirmRemove(pid, productName);
+      return;
+    }
+    const clamped = Math.min(99, qty);
+    document.getElementById('qty-' + pid).value = clamped;
+    applyQtyUpdate(pid, clamped);
+  }
 
-    // Update line total immediately (optimistic)
+  function applyQtyUpdate(pid, qty) {
+    // Optimistic line-total update
     const lineEl = document.getElementById('line-total-' + pid);
     if (lineEl && PRICES[pid] != null) {
       lineEl.textContent = '$' + (PRICES[pid] * qty).toFixed(2);
@@ -461,7 +598,41 @@
       .catch(() => showToast('Failed to update cart.', true));
   }
 
-  function removeItem(pid) {
+  // ── Confirmation modal ────────────────────────────────────────────────────
+  let _pendingRemovePid = null;
+
+  function confirmRemove(pid, productName) {
+    _pendingRemovePid = pid;
+    document.getElementById('confirmProductName').textContent = productName;
+    document.getElementById('confirmBackdrop').classList.add('show');
+
+    // Trap focus on the modal
+    setTimeout(() => {
+      document.querySelector('.btn-confirm-cancel').focus();
+    }, 50);
+  }
+
+  function closeConfirm() {
+    document.getElementById('confirmBackdrop').classList.remove('show');
+
+    // If the user opened this by typing 0, restore the input to 1
+    if (_pendingRemovePid !== null) {
+      const input = document.getElementById('qty-' + _pendingRemovePid);
+      if (input && (parseInt(input.value) <= 0 || isNaN(parseInt(input.value)))) {
+        input.value = 1;
+      }
+    }
+
+    _pendingRemovePid = null;
+  }
+
+  function executeRemove() {
+    const pid = _pendingRemovePid;
+    if (pid === null) return;
+
+    document.getElementById('confirmBackdrop').classList.remove('show');
+    _pendingRemovePid = null;
+
     const fd = new FormData();
     fd.append('product_id', pid);
 
@@ -471,7 +642,6 @@
         if (data.success) {
           const row = document.getElementById('cart-row-' + pid);
           if (row) {
-            row.style.transition = 'opacity 0.3s, transform 0.3s';
             row.style.opacity = '0';
             row.style.transform = 'translateX(20px)';
             setTimeout(() => {
@@ -482,10 +652,18 @@
           document.getElementById('summary-subtotal').textContent = '$' + data.total;
           document.getElementById('summary-total').textContent    = '$' + data.total;
           updateBadges(data.count);
-          showToast('Item removed from cart.');
+          showToast('Item removed from your cart.');
         }
       })
       .catch(() => showToast('Failed to remove item.', true));
   }
+
+  // Close modal on backdrop click or Escape key
+  document.getElementById('confirmBackdrop').addEventListener('click', function(e) {
+    if (e.target === this) closeConfirm();
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeConfirm();
+  });
 </script>
 {% endblock %}
