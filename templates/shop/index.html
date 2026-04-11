@@ -118,10 +118,6 @@
     color: #908F8D;
     text-transform: uppercase;
   }
-  .product-card__badge.hidden-badge {
-    background: #f5f5f5;
-    color: #CACACA;
-  }
 
   .product-card__body { padding: 1rem 0 0; flex: 1; display: flex; flex-direction: column; }
   .product-card__cat {
@@ -260,7 +256,7 @@
         <div class="col">
           <div class="product-card">
             <div class="product-card__img-wrap">
-              <a href="{{ url_for('shop.product_detail', product_id=product.id) }}">
+              <a href="{{ url_for('shop.product_detail', slug=product.slug) }}">
                 <img
                   src="{{ url_for('static', filename=product.image_url) }}"
                   alt="{{ product.name }}"
@@ -272,13 +268,13 @@
 
             <div class="product-card__body">
               <div class="product-card__cat">{{ product.category_label }}</div>
-              <a href="{{ url_for('shop.product_detail', product_id=product.id) }}"
+              <a href="{{ url_for('shop.product_detail', slug=product.slug) }}"
                  class="product-card__name">
                 {{ product.name }}
               </a>
               <div class="product-card__price">${{ "%.2f" | format(product.price) }}</div>
               <div class="product-card__actions">
-                <a href="{{ url_for('shop.product_detail', product_id=product.id) }}"
+                <a href="{{ url_for('shop.product_detail', slug=product.slug) }}"
                    class="btn-add-cart">View Product</a>
                 <a href="#" class="btn-wishlist-sm" title="Add to wishlist">
                   <iconify-icon icon="fluent:heart-28-regular" style="font-size:1rem;"></iconify-icon>
@@ -291,7 +287,6 @@
     </div>
 
   {% else %}
-    {# empty state #}
     <div class="empty-state">
       <iconify-icon icon="la:box-open"></iconify-icon>
       <h3>No products here yet</h3>

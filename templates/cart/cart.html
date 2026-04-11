@@ -272,9 +272,7 @@
       {# ── Left: cart items ───────────────────────────────────────────────── #}
       <div class="col-lg-8">
         <div class="cart-card">
-          <h3 class="cart-card-heading fw-normal mb-0">
-            Items
-          </h3>
+          <h3 class="cart-card-heading fw-normal mb-0">Items</h3>
 
           <div id="cart-items-list">
             {% for item in items %}
@@ -290,7 +288,7 @@
 
                 {# Name + category #}
                 <div>
-                  <a href="{{ url_for('shop.product_detail', product_id=item.product.id) }}"
+                  <a href="{{ url_for('shop.product_detail', slug=item.product.slug) }}"
                      class="cart-item__name">{{ item.product.name }}</a>
                   <div class="cart-item__cat">{{ item.product.category_label }}</div>
                 </div>
@@ -478,7 +476,6 @@
             row.style.transform = 'translateX(20px)';
             setTimeout(() => {
               row.remove();
-              // Reload page if cart is now empty
               if (data.count === 0) location.reload();
             }, 300);
           }

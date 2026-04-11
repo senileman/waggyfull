@@ -81,7 +81,7 @@
   .detail-stepper input::-webkit-inner-spin-button,
   .detail-stepper input::-webkit-outer-spin-button { -webkit-appearance: none; }
 
-  /* ── Stock indicator ────────────────────────── */
+  /* ── Stock indicator ─────────────────────────── */
   .stock-indicator { margin-bottom: 1.25rem; }
   .stock-pill {
     display: inline-flex; align-items: center; gap: 0.45rem;
@@ -112,9 +112,7 @@
     cursor: pointer; transition: background 0.2s;
   }
   .btn-cart-lg:hover { background: #2e2d2b; color: #fff; }
-  .btn-cart-lg:disabled {
-    opacity: 0.5; cursor: not-allowed; background: #41403E;
-  }
+  .btn-cart-lg:disabled { opacity: 0.5; cursor: not-allowed; background: #41403E; }
   .btn-wish-lg {
     padding: 1rem 1.2rem;
     border: 1px solid rgba(65,64,62,0.20);
@@ -132,7 +130,67 @@
   }
   .detail-meta span { color: var(--bs-body-color); font-weight: 500; }
 
-  /* ── Admin quick-edit bar ────────────────────── */
+  /* ── Extended description ────────────────────── */
+  .extended-desc-section {
+    margin-top: 4rem;
+    padding-top: 3rem;
+    border-top: 1px solid rgba(65,64,62,0.08);
+  }
+  .extended-desc-section h2 {
+    font-size: 1.6rem;
+    margin-bottom: 1.5rem;
+  }
+  .extended-desc-body {
+    font-family: var(--secondary-font);
+    font-size: 0.95rem;
+    color: #41403E;
+    line-height: 1.9;
+  }
+  .extended-desc-body h1,
+  .extended-desc-body h2,
+  .extended-desc-body h3 {
+    font-family: var(--body-font);
+    font-weight: 400;
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+  }
+  .extended-desc-body ul,
+  .extended-desc-body ol {
+    padding-left: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  .extended-desc-body li { margin-bottom: 0.35rem; }
+  .extended-desc-body table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1.25rem;
+    font-size: 0.9rem;
+  }
+  .extended-desc-body th,
+  .extended-desc-body td {
+    border: 1px solid rgba(65,64,62,0.15);
+    padding: 0.6rem 0.9rem;
+    text-align: left;
+  }
+  .extended-desc-body th {
+    background: #F9F3EC;
+    font-weight: 500;
+  }
+  .extended-desc-body img {
+    max-width: 100%;
+    border-radius: 0.5rem;
+    margin: 0.75rem 0;
+  }
+  .extended-desc-body blockquote {
+    border-left: 3px solid #DEAD6F;
+    margin: 1rem 0;
+    padding: 0.5rem 1.25rem;
+    color: #908F8D;
+    font-style: italic;
+  }
+  .extended-desc-body a { color: #DEAD6F; }
+
+  /* ── Admin bar ───────────────────────────────── */
   .admin-product-bar {
     background: #FAEEDA; border: 1px solid rgba(222,173,111,0.4);
     border-radius: 0.5rem; padding: 0.75rem 1.2rem;
@@ -198,7 +256,7 @@
 
   <div class="row g-5 align-items-start">
 
-    {# ── Product image ──────────────────────────────────────────────────── #}
+    {# ── Product image ─────────────────────────── #}
     <div class="col-md-6">
       <div class="detail-img-wrap">
         <img
@@ -209,7 +267,7 @@
       </div>
     </div>
 
-    {# ── Product info ───────────────────────────────────────────────────── #}
+    {# ── Product info ──────────────────────────── #}
     <div class="col-md-6">
       <div class="detail-cat">{{ product.category_label }}</div>
       <h1 class="detail-name fw-normal">{{ product.name }}</h1>
@@ -223,7 +281,7 @@
         </div>
       {% endif %}
 
-      {# ── Stock indicator ─────────────────────────────────────────────── #}
+      {# Stock indicator #}
       <div class="stock-indicator">
         {% if product.stock == 0 %}
           <span class="stock-pill out">
@@ -240,7 +298,7 @@
         {% endif %}
       </div>
 
-      {# ── Quantity selector ────────────────────────────────────────────── #}
+      {# Quantity selector #}
       {% if product.stock > 0 %}
         <div class="qty-row">
           <span class="qty-lbl">Qty</span>
@@ -252,7 +310,7 @@
         </div>
       {% endif %}
 
-      {# ── Actions ─────────────────────────────────────────────────────── #}
+      {# Actions #}
       <div class="detail-actions">
         <button
           id="btn-add-cart"
@@ -278,14 +336,24 @@
 
   </div>{# /row #}
 
-  {# ── Related products ───────────────────────────────────────────────────── #}
+  {# ── Extended description ──────────────────────────────────────────────────── #}
+  {% if product.extended_description %}
+    <div class="extended-desc-section">
+      <h2 class="fw-normal">Product <span class="text-primary">Details</span></h2>
+      <div class="extended-desc-body">
+        {{ product.extended_description | safe }}
+      </div>
+    </div>
+  {% endif %}
+
+  {# ── Related products ──────────────────────────────────────────────────────── #}
   {% if related %}
     <div class="related-section mt-5">
       <h2 class="fw-normal mb-4">More from <span class="text-primary">{{ product.category_label }}</span></h2>
       <div class="row row-cols-2 row-cols-md-4 g-4">
         {% for rel in related %}
           <div class="col">
-            <a href="{{ url_for('shop.product_detail', product_id=rel.id) }}" class="related-card">
+            <a href="{{ url_for('shop.product_detail', slug=rel.slug) }}" class="related-card">
               <div class="related-card__img">
                 <img
                   src="{{ url_for('static', filename=rel.image_url) }}"

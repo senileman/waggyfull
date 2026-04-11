@@ -7,14 +7,6 @@ db = SQLAlchemy()
 
 
 class User(UserMixin, db.Model):
-    """
-    Represents a registered user in the Waggy store.
-
-    Roles:
-        'admin'    — Full site management access.
-        'customer' — Standard shopper account (default).
-    """
-
     __tablename__ = "users"
 
     id            = db.Column(db.Integer,     primary_key=True)
@@ -52,25 +44,21 @@ PRODUCT_CATEGORIES = {
 
 
 class Product(db.Model):
-    """
-    Represents a product listed in the Waggy store.
-
-    Categories: food | clothing | accessories | comforts | misc
-    """
-
     __tablename__ = "products"
 
-    id             = db.Column(db.Integer,     primary_key=True)
-    name           = db.Column(db.String(120), nullable=False)
-    category       = db.Column(db.String(30),  nullable=False, default="misc")
-    description    = db.Column(db.Text,        nullable=False, default="")
-    image_filename = db.Column(db.String(256), nullable=True)
-    price          = db.Column(db.Float,       nullable=False, default=0.0)
-    is_active      = db.Column(db.Boolean,     nullable=False, default=True)
-    stock          = db.Column(db.Integer,     nullable=False, default=0)
-    created_at     = db.Column(db.DateTime,    nullable=False, default=datetime.utcnow)
-    updated_at     = db.Column(db.DateTime,    nullable=False, default=datetime.utcnow,
-                               onupdate=datetime.utcnow)
+    id                   = db.Column(db.Integer,     primary_key=True)
+    name                 = db.Column(db.String(120), nullable=False)
+    slug                 = db.Column(db.String(160), unique=True, nullable=True, index=True)
+    category             = db.Column(db.String(30),  nullable=False, default="misc")
+    description          = db.Column(db.Text,        nullable=False, default="")
+    extended_description = db.Column(db.Text,        nullable=False, default="")
+    image_filename       = db.Column(db.String(256), nullable=True)
+    price                = db.Column(db.Float,       nullable=False, default=0.0)
+    is_active            = db.Column(db.Boolean,     nullable=False, default=True)
+    stock                = db.Column(db.Integer,     nullable=False, default=0)
+    created_at           = db.Column(db.DateTime,    nullable=False, default=datetime.utcnow)
+    updated_at           = db.Column(db.DateTime,    nullable=False, default=datetime.utcnow,
+                                     onupdate=datetime.utcnow)
 
     @property
     def category_label(self) -> str:
@@ -87,14 +75,6 @@ class Product(db.Model):
 
 
 class CartItem(db.Model):
-    """
-    Persists shopping-cart lines for authenticated users.
-    Guest carts are stored in the Flask session instead.
-
-    A (user_id, product_id) pair is unique — adding the same product
-    again increments the existing quantity rather than creating a new row.
-    """
-
     __tablename__ = "cart_items"
 
     id         = db.Column(db.Integer,  primary_key=True)

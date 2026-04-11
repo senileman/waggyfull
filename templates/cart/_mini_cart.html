@@ -119,7 +119,7 @@
       >
 
       <div>
-        <a href="{{ url_for('shop.product_detail', product_id=item.product.id) }}"
+        <a href="{{ url_for('shop.product_detail', slug=item.product.slug) }}"
            class="mini-name">{{ item.product.name }}</a>
         <div class="mini-meta">
           Qty: {{ item.quantity }} &nbsp;·&nbsp; ${{ "%.2f" | format(item.product.price) }} each
@@ -183,12 +183,10 @@
               const totalEl = document.getElementById('mini-total');
               if (totalEl) totalEl.textContent = '$' + data.total;
               if (data.count === 0) {
-                // Reload mini cart to show empty state
                 document.getElementById('offcanvasCart')
                   .querySelector('.offcanvas-body')
                   .innerHTML = '<div style="text-align:center;padding:2.5rem 1rem;"><iconify-icon icon="la:shopping-cart" style="font-size:3rem;color:#D9D9D8;display:block;margin-bottom:1rem;"></iconify-icon><p style="font-family:var(--secondary-font);color:#908F8D;font-size:0.9rem;">Your cart is empty.</p></div>';
               }
-              // Update all badges on the page
               document.querySelectorAll('.cart-badge').forEach(b => {
                 b.textContent = data.count;
                 b.style.display = data.count > 0 ? '' : 'none';

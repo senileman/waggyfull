@@ -3,12 +3,12 @@ app.py — Waggy Flask application.
 """
 
 import os
-from flask import Flask, render_template, redirect, url_for
+from flask import Flask, render_template
 from flask_login import LoginManager, login_required, current_user
 
-from models import db, User
+from models import db, User, PRODUCT_CATEGORIES
 from auth import auth_bp
-from shop import shop_bp
+from shop import shop_bp, seed_missing_slugs
 from cart import cart_bp
 
 
@@ -21,14 +21,14 @@ def create_app() -> Flask:
     )
     app.config["SQLALCHEMY_DATABASE_URI"]        = "sqlite:///waggy.db"
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-    app.config["MAX_CONTENT_LENGTH"]             = 8 * 1024 * 1024  # 8 MB max upload
+    app.config["MAX_CONTENT_LENGTH"]             = 8 * 1024 * 1024
 
     db.init_app(app)
 
     login_manager = LoginManager(app)
-    login_manager.login_view              = "auth.login"
-    login_manager.login_message           = "Please log in to continue."
-    login_manager.login_message_category  = "info"
+    login_manager.login_view             = "auth.login"
+    login_manager.login_message          = "Please log in to continue."
+    login_manager.login_message_category = "info"
 
     @login_manager.user_loader
     def load_user(user_id: str):
@@ -38,11 +38,12 @@ def create_app() -> Flask:
     app.register_blueprint(shop_bp)
     app.register_blueprint(cart_bp)
 
-    # ── Context processor: inject cart_count into every template ─────────────
     @app.context_processor
-    def inject_cart_count():
+    def inject_globals():
         from sqlalchemy import func
         from flask import session
+
+        # Cart count
         if current_user.is_authenticated:
             from models import CartItem
             result = (
@@ -54,7 +55,11 @@ def create_app() -> Flask:
         else:
             cart = session.get("cart", {})
             count = sum(cart.values())
-        return {"cart_count": count}
+
+        return {
+            "cart_count": count,
+            "categories": PRODUCT_CATEGORIES,
+        }
 
     from flask import Blueprint
     main_bp = Blueprint("main", __name__)
@@ -77,6 +82,7 @@ def create_app() -> Flask:
     with app.app_context():
         db.create_all()
         _seed_admin()
+        seed_missing_slugs()
 
     return app
 

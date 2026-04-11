@@ -285,7 +285,7 @@
                 >
               </td>
               <td>
-                <a href="{{ url_for('shop.product_detail', product_id=product.id) }}"
+                <a href="{{ url_for('shop.product_detail', slug=product.slug) }}"
                    class="prod-name-link" target="_blank">
                   {{ product.name }}
                 </a>
