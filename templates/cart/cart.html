@@ -1,0 +1,494 @@
+{% extends "base.html" %}
+{% block title %}Shopping Cart — Waggy{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* ── Page hero ───────────────────────────────────────────────── */
+  .cart-hero {
+    background: #F9F3EC;
+    border-bottom: 1px solid rgba(65,64,62,0.08);
+    padding: 2.5rem 0 2rem;
+  }
+  .cart-hero h1 { font-size: clamp(1.8rem,3.5vw,2.8rem); margin-bottom: 0; }
+
+  /* ── Cart item row ───────────────────────────────────────────── */
+  .cart-item {
+    display: grid;
+    grid-template-columns: 80px 1fr auto auto auto;
+    gap: 1.2rem;
+    align-items: center;
+    padding: 1.25rem 0;
+    border-bottom: 1px solid rgba(65,64,62,0.07);
+  }
+  .cart-item:last-child { border-bottom: none; }
+
+  .cart-thumb {
+    width: 80px; height: 80px;
+    border-radius: 0.6rem;
+    object-fit: cover;
+    background: #f5f5f5;
+    flex-shrink: 0;
+  }
+
+  .cart-item__name {
+    font-size: 1rem;
+    color: var(--bs-body-color);
+    text-decoration: none;
+    display: block;
+    margin-bottom: 0.2rem;
+    line-height: 1.3;
+  }
+  .cart-item__name:hover { color: #DEAD6F; }
+  .cart-item__cat {
+    font-family: var(--secondary-font);
+    font-size: 0.72rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: #CACACA;
+  }
+
+  .cart-item__price {
+    font-family: var(--secondary-font);
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #DEAD6F;
+    white-space: nowrap;
+    text-align: right;
+  }
+  .cart-item__line-total {
+    font-family: var(--secondary-font);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--bs-body-color);
+    white-space: nowrap;
+    text-align: right;
+    min-width: 70px;
+  }
+
+  /* ── Quantity stepper ────────────────────────────────────────── */
+  .qty-stepper {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid rgba(65,64,62,0.18);
+    border-radius: 0.25rem;
+    overflow: hidden;
+    user-select: none;
+  }
+  .qty-btn {
+    width: 34px; height: 34px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem;
+    color: #908F8D;
+    transition: background 0.15s, color 0.15s;
+    flex-shrink: 0;
+  }
+  .qty-btn:hover { background: #F9F3EC; color: var(--bs-body-color); }
+  .qty-input {
+    width: 44px; height: 34px;
+    border: none;
+    border-left: 1px solid rgba(65,64,62,0.12);
+    border-right: 1px solid rgba(65,64,62,0.12);
+    text-align: center;
+    font-family: var(--secondary-font);
+    font-size: 0.9rem;
+    background: #fff;
+    color: var(--bs-body-color);
+    outline: none;
+    -moz-appearance: textfield;
+  }
+  .qty-input::-webkit-inner-spin-button,
+  .qty-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+  /* ── Remove button ───────────────────────────────────────────── */
+  .btn-remove {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #CACACA;
+    font-size: 1.1rem;
+    padding: 0.3rem;
+    transition: color 0.2s;
+    display: flex; align-items: center;
+  }
+  .btn-remove:hover { color: #c0392b; }
+
+  /* ── Cart container card ─────────────────────────────────────── */
+  .cart-card {
+    background: #fff;
+    border: 1px solid rgba(65,64,62,0.08);
+    border-radius: 0.75rem;
+    padding: 1.5rem 2rem;
+  }
+  .cart-card-heading {
+    font-size: 1.1rem;
+    border-bottom: 2px solid #F9F3EC;
+    padding-bottom: 0.75rem;
+    margin-bottom: 0;
+  }
+
+  /* ── Order summary ───────────────────────────────────────────── */
+  .summary-card {
+    background: #F9F3EC;
+    border: 1px solid rgba(65,64,62,0.08);
+    border-radius: 0.75rem;
+    padding: 1.75rem;
+    position: sticky;
+    top: 1rem;
+  }
+  .summary-card h4 { font-size: 1.2rem; margin-bottom: 1.2rem; }
+  .summary-row {
+    display: flex; justify-content: space-between;
+    font-family: var(--secondary-font);
+    font-size: 0.9rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(65,64,62,0.08);
+  }
+  .summary-row:last-of-type { border-bottom: none; }
+  .summary-row .lbl { color: #908F8D; }
+  .summary-total {
+    display: flex; justify-content: space-between;
+    align-items: baseline;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 2px solid rgba(65,64,62,0.12);
+  }
+  .summary-total .lbl {
+    font-family: var(--secondary-font);
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: #908F8D;
+  }
+  .summary-total .val {
+    font-size: 1.6rem;
+    font-weight: 400;
+    color: var(--bs-body-color);
+  }
+
+  .btn-checkout {
+    display: block; width: 100%;
+    padding: 1rem;
+    background: #41403E;
+    color: #fff;
+    border: none;
+    border-radius: 0.25rem;
+    font-family: var(--secondary-font);
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-top: 1.25rem;
+  }
+  .btn-checkout:hover { background: #2e2d2b; }
+
+  .btn-continue {
+    display: block; text-align: center;
+    font-family: var(--secondary-font);
+    font-size: 0.82rem;
+    color: #908F8D;
+    margin-top: 0.75rem;
+    text-decoration: none;
+  }
+  .btn-continue:hover { color: var(--bs-body-color); }
+
+  /* ── Empty state ─────────────────────────────────────────────── */
+  .cart-empty {
+    padding: 4rem 1rem;
+    text-align: center;
+  }
+  .cart-empty iconify-icon { font-size: 4rem; color: #D9D9D8; }
+  .cart-empty h3 { font-size: 1.4rem; margin: 1rem 0 0.5rem; font-weight: 400; }
+  .cart-empty p { font-family: var(--secondary-font); font-size: 0.9rem; color: #908F8D; }
+
+  /* ── Toast notification ──────────────────────────────────────── */
+  #cart-toast {
+    position: fixed;
+    bottom: 1.5rem; right: 1.5rem;
+    background: #41403E;
+    color: #fff;
+    padding: 0.9rem 1.4rem;
+    border-radius: 0.4rem;
+    font-family: var(--secondary-font);
+    font-size: 0.875rem;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.18);
+    z-index: 9999;
+    transform: translateY(6px);
+    opacity: 0;
+    transition: opacity 0.25s, transform 0.25s;
+    pointer-events: none;
+    max-width: 320px;
+  }
+  #cart-toast.show { opacity: 1; transform: translateY(0); }
+
+  /* ── Responsive tweaks ───────────────────────────────────────── */
+  @media (max-width: 575px) {
+    .cart-item {
+      grid-template-columns: 64px 1fr auto;
+      grid-template-rows: auto auto;
+    }
+    .cart-item__price { display: none; }
+    .cart-item__line-total { grid-column: 3; grid-row: 1; }
+    .qty-stepper { grid-column: 2; }
+    .btn-remove { grid-column: 3; grid-row: 2; justify-self: end; }
+    .cart-card { padding: 1rem; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+{# ── Page hero ─────────────────────────────────────────────────────────────── #}
+<div class="cart-hero">
+  <div class="container">
+    <nav aria-label="breadcrumb" class="mb-2">
+      <ol class="breadcrumb mb-0" style="font-family:var(--secondary-font); font-size:0.83rem;">
+        <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}" class="text-muted text-decoration-none">Home</a></li>
+        <li class="breadcrumb-item active text-muted">Cart</li>
+      </ol>
+    </nav>
+    <h1 class="fw-normal">
+      Your <span class="text-primary">Cart</span>
+      {% if items %}
+        <span style="font-family:var(--secondary-font); font-size:1rem; color:#908F8D; font-weight:400; vertical-align:middle; margin-left:0.5rem;">
+          ({{ cart_count }} item{{ 's' if cart_count != 1 }})
+        </span>
+      {% endif %}
+    </h1>
+  </div>
+</div>
+
+<div class="container my-5">
+
+  {% if items %}
+
+    <div class="row g-4 align-items-start">
+
+      {# ── Left: cart items ───────────────────────────────────────────────── #}
+      <div class="col-lg-8">
+        <div class="cart-card">
+          <h3 class="cart-card-heading fw-normal mb-0">
+            Items
+          </h3>
+
+          <div id="cart-items-list">
+            {% for item in items %}
+              <div class="cart-item" id="cart-row-{{ item.product.id }}">
+
+                {# Thumbnail #}
+                <img
+                  class="cart-thumb"
+                  src="{{ url_for('static', filename=item.product.image_url) }}"
+                  alt="{{ item.product.name }}"
+                  onerror="this.src='{{ url_for('static', filename='images/item1.jpg') }}'"
+                >
+
+                {# Name + category #}
+                <div>
+                  <a href="{{ url_for('shop.product_detail', product_id=item.product.id) }}"
+                     class="cart-item__name">{{ item.product.name }}</a>
+                  <div class="cart-item__cat">{{ item.product.category_label }}</div>
+                </div>
+
+                {# Unit price #}
+                <div class="cart-item__price">${{ "%.2f" | format(item.product.price) }}</div>
+
+                {# Quantity stepper #}
+                <div class="qty-stepper">
+                  <button type="button" class="qty-btn"
+                          onclick="stepQty({{ item.product.id }}, -1)">−</button>
+                  <input
+                    type="number"
+                    class="qty-input"
+                    id="qty-{{ item.product.id }}"
+                    value="{{ item.quantity }}"
+                    min="1" max="99"
+                    onchange="setQty({{ item.product.id }}, this.value)"
+                  >
+                  <button type="button" class="qty-btn"
+                          onclick="stepQty({{ item.product.id }}, 1)">+</button>
+                </div>
+
+                {# Line total #}
+                <div class="cart-item__line-total" id="line-total-{{ item.product.id }}">
+                  ${{ "%.2f" | format(item.product.price * item.quantity) }}
+                </div>
+
+                {# Remove #}
+                <button type="button" class="btn-remove"
+                        title="Remove"
+                        onclick="removeItem({{ item.product.id }})">
+                  <iconify-icon icon="la:trash-alt"></iconify-icon>
+                </button>
+
+              </div>
+            {% endfor %}
+          </div>
+
+        </div>
+      </div>
+
+      {# ── Right: order summary ────────────────────────────────────────────── #}
+      <div class="col-lg-4">
+        <div class="summary-card">
+          <h4 class="fw-normal">Order Summary</h4>
+
+          <div class="summary-row">
+            <span class="lbl">Subtotal</span>
+            <span id="summary-subtotal">${{ "%.2f" | format(total) }}</span>
+          </div>
+          <div class="summary-row">
+            <span class="lbl">Shipping</span>
+            <span class="text-success" style="font-family:var(--secondary-font); font-size:0.85rem;">
+              Free
+            </span>
+          </div>
+          <div class="summary-row">
+            <span class="lbl">Tax</span>
+            <span>Calculated at checkout</span>
+          </div>
+
+          <div class="summary-total">
+            <span class="lbl">Total</span>
+            <span class="val" id="summary-total">${{ "%.2f" | format(total) }}</span>
+          </div>
+
+          <form method="POST" action="{{ url_for('cart.checkout') }}">
+            <button type="submit" class="btn-checkout">
+              <iconify-icon icon="la:lock" style="font-size:1rem; vertical-align:-2px; margin-right:0.35rem;"></iconify-icon>
+              Proceed to Checkout
+            </button>
+          </form>
+
+          {% if not current_user.is_authenticated %}
+            <p class="mt-3 mb-0" style="font-family:var(--secondary-font); font-size:0.8rem; color:#908F8D; text-align:center;">
+              <iconify-icon icon="la:info-circle" style="vertical-align:-2px;"></iconify-icon>
+              <a href="{{ url_for('auth.login') }}" style="color:#DEAD6F;">Sign in</a>
+              to save your cart permanently.
+            </p>
+          {% endif %}
+
+          <a href="{{ url_for('shop.index') }}" class="btn-continue">
+            ← Continue shopping
+          </a>
+        </div>
+      </div>
+
+    </div>
+
+  {% else %}
+
+    {# ── Empty cart ─────────────────────────────────────────────────────────── #}
+    <div class="cart-card">
+      <div class="cart-empty">
+        <iconify-icon icon="la:shopping-cart"></iconify-icon>
+        <h3>Your cart is empty</h3>
+        <p>Looks like you haven't added anything yet.</p>
+        <a href="{{ url_for('shop.index') }}"
+           class="btn btn-outline-dark rounded-1 mt-2"
+           style="font-size:0.875rem; padding:0.6rem 1.8rem;">
+          Browse the Shop
+        </a>
+      </div>
+    </div>
+
+  {% endif %}
+
+</div>
+
+{# Toast notification #}
+<div id="cart-toast"></div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  const PRICES = {
+    {% for item in items %}
+      {{ item.product.id }}: {{ item.product.price }},
+    {% endfor %}
+  };
+
+  function showToast(msg, error = false) {
+    const t = document.getElementById('cart-toast');
+    t.textContent = msg;
+    t.style.background = error ? '#c0392b' : '#41403E';
+    t.classList.add('show');
+    clearTimeout(t._timer);
+    t._timer = setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  function updateBadges(count) {
+    document.querySelectorAll('.cart-badge').forEach(b => {
+      b.textContent = count;
+      b.style.display = count > 0 ? '' : 'none';
+    });
+  }
+
+  function stepQty(pid, delta) {
+    const input = document.getElementById('qty-' + pid);
+    const newVal = Math.max(1, Math.min(99, parseInt(input.value) + delta));
+    input.value = newVal;
+    setQty(pid, newVal);
+  }
+
+  function setQty(pid, val) {
+    const qty = Math.max(1, Math.min(99, parseInt(val) || 1));
+    document.getElementById('qty-' + pid).value = qty;
+
+    // Update line total immediately (optimistic)
+    const lineEl = document.getElementById('line-total-' + pid);
+    if (lineEl && PRICES[pid] != null) {
+      lineEl.textContent = '$' + (PRICES[pid] * qty).toFixed(2);
+    }
+
+    const fd = new FormData();
+    fd.append('product_id', pid);
+    fd.append('quantity', qty);
+
+    fetch('{{ url_for("cart.update_cart") }}', { method: 'POST', body: fd })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          document.getElementById('summary-subtotal').textContent = '$' + data.total;
+          document.getElementById('summary-total').textContent    = '$' + data.total;
+          updateBadges(data.count);
+        }
+      })
+      .catch(() => showToast('Failed to update cart.', true));
+  }
+
+  function removeItem(pid) {
+    const fd = new FormData();
+    fd.append('product_id', pid);
+
+    fetch('{{ url_for("cart.remove_from_cart") }}', { method: 'POST', body: fd })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          const row = document.getElementById('cart-row-' + pid);
+          if (row) {
+            row.style.transition = 'opacity 0.3s, transform 0.3s';
+            row.style.opacity = '0';
+            row.style.transform = 'translateX(20px)';
+            setTimeout(() => {
+              row.remove();
+              // Reload page if cart is now empty
+              if (data.count === 0) location.reload();
+            }, 300);
+          }
+          document.getElementById('summary-subtotal').textContent = '$' + data.total;
+          document.getElementById('summary-total').textContent    = '$' + data.total;
+          updateBadges(data.count);
+          showToast('Item removed from cart.');
+        }
+      })
+      .catch(() => showToast('Failed to remove item.', true));
+  }
+</script>
+{% endblock %}
