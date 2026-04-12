@@ -9,6 +9,13 @@ Routes (all prefixed with /cart):
     GET  /cart/mini          — Mini-cart HTML for offcanvas (AJAX → HTML)
     GET  /cart/count         — Cart item count (AJAX → JSON)
     POST /cart/checkout      — Placeholder checkout
+
+Session cart hygiene
+--------------------
+Whenever the guest session cart is read, any product_id that is no longer
+active (or no longer exists) is silently dropped from the session.  This
+means that if an admin deletes or hides a product, the next time a guest
+user opens their cart, the stale entry vanishes automatically.
 """
 
 from flask import (
@@ -37,16 +44,45 @@ def _save_session_cart(cart: dict) -> None:
     session.modified = True
 
 
+def _clean_session_cart() -> dict:
+    """
+    Remove any entries from the session cart whose product is missing or
+    inactive.  Returns the cleaned cart and saves it back to the session.
+    """
+    cart = _session_cart()
+    if not cart:
+        return cart
+
+    pids = [int(k) for k in cart.keys()]
+    active_ids = {
+        row.id
+        for row in Product.query
+        .filter(Product.id.in_(pids), Product.is_active.is_(True))
+        .with_entities(Product.id)
+        .all()
+    }
+
+    cleaned = {k: v for k, v in cart.items() if int(k) in active_ids}
+    if len(cleaned) != len(cart):
+        _save_session_cart(cleaned)
+
+    return cleaned
+
+
 def get_cart_count() -> int:
     """Total number of units across all cart lines. Safe to call from templates."""
     if current_user.is_authenticated:
         result = (
             db.session.query(func.sum(CartItem.quantity))
-            .filter_by(user_id=current_user.id)
+            .join(CartItem.product)
+            .filter(
+                CartItem.user_id == current_user.id,
+                Product.is_active.is_(True),
+            )
             .scalar()
         )
         return int(result or 0)
-    cart = _session_cart()
+    cart = _clean_session_cart()
     return sum(cart.values())
 
 
@@ -54,8 +90,10 @@ def get_cart_items() -> list[dict]:
     """
     Return a list of dicts: {product: Product, quantity: int}
     Skips any product that is no longer active.
+    For authenticated users, also cleans up stale DB cart rows in one shot.
     """
     if current_user.is_authenticated:
+        # Fetch only rows whose product is still active.
         rows = (
             CartItem.query
             .filter_by(user_id=current_user.id)
@@ -63,9 +101,24 @@ def get_cart_items() -> list[dict]:
             .filter(Product.is_active.is_(True))
             .all()
         )
+
+        # Silently delete any cart rows for inactive/deleted products.
+        stale = (
+            CartItem.query
+            .filter_by(user_id=current_user.id)
+            .join(CartItem.product)
+            .filter(Product.is_active.is_(False))
+            .all()
+        )
+        if stale:
+            for item in stale:
+                db.session.delete(item)
+            db.session.commit()
+
         return [{"product": r.product, "quantity": r.quantity} for r in rows]
 
-    cart = _session_cart()
+    # Guest path — _clean_session_cart already drops inactive product keys.
+    cart = _clean_session_cart()
     result = []
     for pid_str, qty in cart.items():
         p = Product.query.filter_by(id=int(pid_str), is_active=True).first()
@@ -83,7 +136,7 @@ def _cart_total(items: list[dict]) -> float:
 def merge_session_cart(user) -> None:
     """
     Called after a guest logs in.  Merges the session cart into the DB cart
-    and clears the session cart.
+    and clears the session cart.  Only active products are merged.
     """
     cart = session.pop("cart", {})
     if not cart:
@@ -92,6 +145,10 @@ def merge_session_cart(user) -> None:
         try:
             pid = int(pid_str)
         except ValueError:
+            continue
+        # Only merge active products.
+        product = Product.query.filter_by(id=pid, is_active=True).first()
+        if not product:
             continue
         existing = CartItem.query.filter_by(
             user_id=user.id, product_id=pid
@@ -138,7 +195,7 @@ def add_to_cart():
             db.session.add(item)
         db.session.commit()
     else:
-        cart = _session_cart()
+        cart = _clean_session_cart()
         pid_str = str(pid)
         cart[pid_str] = min(cart.get(pid_str, 0) + quantity, _MAX_QTY)
         _save_session_cart(cart)
@@ -171,7 +228,7 @@ def update_cart():
                 item.quantity = quantity
             db.session.commit()
     else:
-        cart = _session_cart()
+        cart = _clean_session_cart()
         pid_str = str(pid)
         if quantity == 0:
             cart.pop(pid_str, None)
@@ -200,7 +257,7 @@ def remove_from_cart():
             db.session.delete(item)
             db.session.commit()
     else:
-        cart = _session_cart()
+        cart = _clean_session_cart()
         cart.pop(str(pid), None)
         _save_session_cart(cart)
 

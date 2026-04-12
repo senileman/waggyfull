@@ -9,7 +9,7 @@ from flask_login import LoginManager, login_required, current_user
 from models import db, User, PRODUCT_CATEGORIES
 from auth import auth_bp
 from shop import shop_bp, seed_missing_slugs
-from cart import cart_bp
+from cart import cart_bp, get_cart_count
 
 
 def create_app() -> Flask:
@@ -40,24 +40,12 @@ def create_app() -> Flask:
 
     @app.context_processor
     def inject_globals():
-        from sqlalchemy import func
-        from flask import session
-
-        # Cart count
-        if current_user.is_authenticated:
-            from models import CartItem
-            result = (
-                db.session.query(func.sum(CartItem.quantity))
-                .filter_by(user_id=current_user.id)
-                .scalar()
-            )
-            count = int(result or 0)
-        else:
-            cart = session.get("cart", {})
-            count = sum(cart.values())
-
+        # get_cart_count() handles both cases correctly:
+        #   - authenticated users: joins Product and filters is_active=True
+        #   - guests: calls _clean_session_cart() which drops any
+        #     hidden/deleted product IDs before summing quantities
         return {
-            "cart_count": count,
+            "cart_count": get_cart_count(),
             "categories": PRODUCT_CATEGORIES,
         }
 

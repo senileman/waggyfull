@@ -23,7 +23,7 @@ from flask import (
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 
-from models import db, Product, PRODUCT_CATEGORIES
+from models import db, Product, CartItem, PRODUCT_CATEGORIES
 
 shop_bp = Blueprint("shop", __name__, url_prefix="/shop")
 
@@ -83,6 +83,23 @@ def _save_image(file_obj) -> str | None:
     os.makedirs(upload_dir, exist_ok=True)
     file_obj.save(os.path.join(upload_dir, unique_name))
     return unique_name
+
+
+# ── Cart-purge helper ─────────────────────────────────────────────────────────
+
+def _purge_from_all_carts(product_id: int) -> int:
+    """
+    Remove every CartItem referencing *product_id* (across all users and the
+    session-based guest cart is handled separately in cart.py helpers).
+
+    Returns the number of DB rows deleted so the caller can report it.
+    """
+    deleted = (
+        CartItem.query
+        .filter_by(product_id=product_id)
+        .delete(synchronize_session="fetch")
+    )
+    return deleted
 
 
 # ── Admin-only decorator ──────────────────────────────────────────────────────
@@ -266,6 +283,17 @@ def edit_product(product_id):
                 categories=PRODUCT_CATEGORIES,
             )
 
+        # ── If the product is being hidden, purge it from all carts ──────────
+        was_active = product.is_active
+        if was_active and not is_active:
+            removed = _purge_from_all_carts(product.id)
+            if removed:
+                flash(
+                    f'"{name}" was hidden and removed from {removed} '
+                    f'shopping cart{"s" if removed != 1 else ""}.',
+                    "warning",
+                )
+
         # Regenerate slug only if name changed
         if name != product.name:
             product.slug = _unique_slug(name, exclude_id=product.id)
@@ -300,9 +328,21 @@ def edit_product(product_id):
 def delete_product(product_id):
     product = Product.query.get_or_404(product_id)
     name = product.name
+
+    # Count how many cart rows will be removed so we can tell the admin.
+    # The actual removal happens via the cascade defined on the relationship.
+    cart_rows = CartItem.query.filter_by(product_id=product_id).count()
+
     db.session.delete(product)
     db.session.commit()
-    flash(f'Product "{name}" deleted.', "info")
+
+    msg = f'Product "{name}" deleted.'
+    if cart_rows:
+        msg += (
+            f" It was also removed from {cart_rows} "
+            f'shopping cart{"s" if cart_rows != 1 else ""}.'
+        )
+    flash(msg, "info")
     return redirect(url_for("shop.change_listing"))
 
 
@@ -310,8 +350,21 @@ def delete_product(product_id):
 @admin_required
 def toggle_product(product_id):
     product = Product.query.get_or_404(product_id)
-    product.is_active = not product.is_active
+    new_state = not product.is_active
+    product.is_active = new_state
+
+    cart_msg = ""
+    if not new_state:
+        # Product is being hidden — remove it from every user's cart.
+        removed = _purge_from_all_carts(product.id)
+        if removed:
+            cart_msg = (
+                f" Removed from {removed} "
+                f'cart{"s" if removed != 1 else ""}.'
+            )
+
     db.session.commit()
-    state = "visible" if product.is_active else "hidden"
-    flash(f'"{product.name}" is now {state}.', "success")
+
+    state = "visible" if new_state else "hidden"
+    flash(f'"{product.name}" is now {state}.{cart_msg}', "success" if new_state else "warning")
     return redirect(url_for("shop.change_listing"))

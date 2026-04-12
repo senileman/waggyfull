@@ -60,6 +60,14 @@ class Product(db.Model):
     updated_at           = db.Column(db.DateTime,    nullable=False, default=datetime.utcnow,
                                      onupdate=datetime.utcnow)
 
+    # Cascade: deleting a Product automatically deletes its CartItem rows.
+    cart_items = db.relationship(
+        "CartItem",
+        backref=db.backref("product", lazy="joined"),
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
+
     @property
     def category_label(self) -> str:
         return PRODUCT_CATEGORIES.get(self.category, self.category.capitalize())
@@ -79,12 +87,15 @@ class CartItem(db.Model):
 
     id         = db.Column(db.Integer,  primary_key=True)
     user_id    = db.Column(db.Integer,  db.ForeignKey("users.id"),    nullable=False)
-    product_id = db.Column(db.Integer,  db.ForeignKey("products.id"), nullable=False)
+    product_id = db.Column(
+        db.Integer,
+        db.ForeignKey("products.id", ondelete="CASCADE"),
+        nullable=False,
+    )
     quantity   = db.Column(db.Integer,  nullable=False, default=1)
     added_at   = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
-    user    = db.relationship("User",    backref=db.backref("cart_items", lazy=True))
-    product = db.relationship("Product", lazy="joined")
+    user = db.relationship("User", backref=db.backref("cart_items", lazy=True))
 
     __table_args__ = (
         db.UniqueConstraint("user_id", "product_id", name="uq_cart_user_product"),
