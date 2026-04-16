@@ -1,0 +1,334 @@
+{% extends "base.html" %}
+{% block title %}Receipt {{ order.receipt_id }} — Waggy{% endblock %}
+
+{% block extra_css %}
+<style>
+  .receipt-hero {
+    background: #F9F3EC;
+    border-bottom: 1px solid rgba(65,64,62,0.08);
+    padding: 2.5rem 0 2rem;
+  }
+  .receipt-hero h1 { font-size: clamp(1.8rem, 3.5vw, 2.5rem); margin-bottom: 0.25rem; }
+
+  /* ── Receipt card ─────────────────────────────── */
+  .receipt-card {
+    background: #fff;
+    border: 1px solid rgba(65,64,62,0.10);
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: 0 4px 32px rgba(65,64,62,0.07);
+    max-width: 780px;
+    margin: 0 auto;
+  }
+
+  /* Header stripe */
+  .receipt-header {
+    background: linear-gradient(135deg, #41403E 0%, #2e2d2b 100%);
+    color: #fff;
+    padding: 2rem 2.5rem;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .receipt-header .brand { font-size: 1.6rem; font-family: var(--body-font); }
+  .receipt-header .brand span { color: #DEAD6F; }
+  .receipt-header .receipt-id-label {
+    font-family: var(--secondary-font); font-size: 0.7rem;
+    letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.5);
+    margin-bottom: 0.25rem;
+  }
+  .receipt-header .receipt-id {
+    font-family: var(--secondary-font); font-size: 1.1rem; font-weight: 600;
+    letter-spacing: 0.04em; color: #DEAD6F;
+  }
+
+  /* Status badge */
+  .status-badge {
+    display: inline-flex; align-items: center; gap: 0.45rem;
+    font-family: var(--secondary-font); font-size: 0.8rem; font-weight: 600;
+    padding: 0.4rem 1rem; border-radius: 2rem;
+    letter-spacing: 0.03em; text-transform: uppercase;
+  }
+  .status-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+
+  /* Body sections */
+  .receipt-section {
+    padding: 1.75rem 2.5rem;
+    border-bottom: 1px solid rgba(65,64,62,0.07);
+  }
+  .receipt-section:last-child { border-bottom: none; }
+  .receipt-section h5 {
+    font-family: var(--secondary-font); font-size: 0.72rem;
+    font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase;
+    color: #908F8D; margin-bottom: 1rem;
+  }
+
+  /* Meta grid */
+  .meta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1rem;
+  }
+  .meta-item .meta-label {
+    font-family: var(--secondary-font); font-size: 0.72rem; letter-spacing: 0.08em;
+    text-transform: uppercase; color: #CACACA; margin-bottom: 0.2rem;
+  }
+  .meta-item .meta-value { font-size: 0.95rem; color: var(--bs-body-color); }
+
+  /* Items table */
+  .receipt-table { width: 100%; border-collapse: collapse; }
+  .receipt-table th {
+    font-family: var(--secondary-font); font-size: 0.7rem; font-weight: 500;
+    letter-spacing: 0.1em; text-transform: uppercase; color: #908F8D;
+    border-bottom: 1px solid rgba(65,64,62,0.12); padding: 0.5rem 0;
+    text-align: left;
+  }
+  .receipt-table th:last-child, .receipt-table td:last-child { text-align: right; }
+  .receipt-table td {
+    padding: 0.85rem 0; border-bottom: 1px solid rgba(65,64,62,0.06);
+    vertical-align: middle;
+  }
+  .receipt-table tr:last-child td { border-bottom: none; }
+  .receipt-table .prod-name { font-size: 0.95rem; color: var(--bs-body-color); }
+  .receipt-table .prod-cat {
+    font-family: var(--secondary-font); font-size: 0.72rem; letter-spacing: 0.06em;
+    text-transform: uppercase; color: #CACACA;
+  }
+  .receipt-table .unit-price, .receipt-table .qty-col {
+    font-family: var(--secondary-font); font-size: 0.9rem; color: #908F8D;
+    white-space: nowrap;
+  }
+  .receipt-table .line-total {
+    font-family: var(--secondary-font); font-size: 0.95rem; font-weight: 600;
+    color: #DEAD6F; white-space: nowrap;
+  }
+
+  /* Total row */
+  .receipt-total-row {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: 1.25rem 2.5rem;
+    background: #F9F3EC;
+    border-top: 2px solid rgba(65,64,62,0.08);
+  }
+  .receipt-total-row .lbl {
+    font-family: var(--secondary-font); font-size: 0.85rem; font-weight: 500;
+    text-transform: uppercase; letter-spacing: 0.08em; color: #908F8D;
+  }
+  .receipt-total-row .val { font-size: 2rem; color: var(--bs-body-color); }
+
+  /* Shipping + action strip */
+  .receipt-footer {
+    display: flex; flex-wrap: wrap; gap: 1rem;
+    align-items: center; justify-content: space-between;
+    padding: 1.25rem 2.5rem;
+    border-top: 1px solid rgba(65,64,62,0.08);
+  }
+  .shipping-block { font-family: var(--secondary-font); font-size: 0.875rem; }
+  .shipping-block .lbl { font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: #CACACA; margin-bottom: 0.2rem; }
+  .shipping-block .val { color: var(--bs-body-color); line-height: 1.6; }
+
+  /* Action buttons */
+  .receipt-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  .btn-receipt {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    font-family: var(--secondary-font); font-size: 0.8rem; font-weight: 500;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    padding: 0.55rem 1.1rem; border-radius: 0.25rem; border: none;
+    cursor: pointer; text-decoration: none; transition: all 0.18s;
+    white-space: nowrap;
+  }
+  .btn-receipt.primary { background: #41403E; color: #fff; }
+  .btn-receipt.primary:hover { background: #2e2d2b; color: #fff; }
+  .btn-receipt.outline { background: transparent; color: #908F8D; border: 1px solid rgba(65,64,62,0.2); }
+  .btn-receipt.outline:hover { background: #F9F3EC; color: var(--bs-body-color); }
+
+  /* Admin bar */
+  .admin-bar {
+    background: #FAEEDA; border: 1px solid rgba(222,173,111,0.4);
+    border-radius: 0.5rem; padding: 0.75rem 1.2rem;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.5rem;
+    font-family: var(--secondary-font); font-size: 0.85rem; color: #6b5a2e;
+  }
+  .admin-bar a { color: #6b5a2e; font-weight: 500; margin-right: 1rem; text-decoration: none; }
+  .admin-bar a:hover { color: #41403E; }
+
+  @media print {
+    header, footer, #footer-bottom, nav, .admin-bar, .receipt-actions,
+    .preloader-wrapper { display: none !important; }
+    body { background: #fff !important; }
+    .receipt-card { box-shadow: none !important; border: none !important; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="receipt-hero">
+  <div class="container">
+    <nav aria-label="breadcrumb" class="mb-2">
+      <ol class="breadcrumb mb-0" style="font-family:var(--secondary-font); font-size:0.83rem;">
+        <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}" class="text-muted text-decoration-none">Home</a></li>
+        {% if current_user.is_admin %}
+          <li class="breadcrumb-item"><a href="{{ url_for('orders.orders_list') }}" class="text-muted text-decoration-none">Orders</a></li>
+        {% else %}
+          <li class="breadcrumb-item"><a href="{{ url_for('orders.my_orders') }}" class="text-muted text-decoration-none">My Orders</a></li>
+        {% endif %}
+        <li class="breadcrumb-item active text-muted">{{ order.receipt_id }}</li>
+      </ol>
+    </nav>
+    <h1 class="fw-normal">
+      Order <span class="text-primary">Receipt</span>
+    </h1>
+    <p class="secondary-font mb-0" style="color:#908F8D; font-size:0.9rem;">
+      Placed on {{ order.created_at.strftime('%d %B %Y at %H:%M') }} UTC
+    </p>
+  </div>
+</div>
+
+<div class="container my-5">
+
+  {# Admin management bar #}
+  {% if current_user.is_admin %}
+    <div class="admin-bar">
+      <span>
+        <iconify-icon icon="la:tools" style="vertical-align:-2px; margin-right:0.3rem;"></iconify-icon>
+        Admin view — Customer: <strong>{{ order.user.username }}</strong>
+        ({{ order.user.email }})
+      </span>
+      <div>
+        <a href="{{ url_for('orders.order_detail', order_id=order.id) }}">
+          <iconify-icon icon="la:edit" style="vertical-align:-2px;"></iconify-icon>
+          Manage Order
+        </a>
+        <a href="{{ url_for('orders.orders_list') }}">
+          <iconify-icon icon="la:list" style="vertical-align:-2px;"></iconify-icon>
+          All Orders
+        </a>
+      </div>
+    </div>
+  {% endif %}
+
+  <div class="receipt-card">
+
+    {# ── Header ── #}
+    <div class="receipt-header">
+      <div>
+        <div class="brand">Waggy<span>.</span></div>
+        <div style="font-family:var(--secondary-font); font-size:0.8rem; color:rgba(255,255,255,0.5); margin-top:0.2rem;">
+          Your friendly pet shop
+        </div>
+      </div>
+      <div style="text-align:right;">
+        <div class="receipt-id-label">Receipt ID</div>
+        <div class="receipt-id">{{ order.receipt_id }}</div>
+      </div>
+    </div>
+
+    {# ── Order meta ── #}
+    <div class="receipt-section">
+      <h5>Order Information</h5>
+      <div class="meta-grid">
+        <div class="meta-item">
+          <div class="meta-label">Customer</div>
+          <div class="meta-value">{{ order.user.username }}</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Customer ID</div>
+          <div class="meta-value" style="font-family:var(--secondary-font); font-size:0.85rem; color:#908F8D;">#{{ order.user_id }}</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Date</div>
+          <div class="meta-value" style="font-family:var(--secondary-font); font-size:0.875rem;">
+            {{ order.created_at.strftime('%d %b %Y') }}
+          </div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Status</div>
+          <div class="meta-value">
+            {% set s = order.status_style %}
+            <span class="status-badge"
+                  style="background:{{ s.bg }}; color:{{ s.color }};">
+              <span class="status-dot" style="background:{{ s.dot }};"></span>
+              {{ order.status_label }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {# ── Items ── #}
+    <div class="receipt-section">
+      <h5>Items Ordered</h5>
+      <table class="receipt-table">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th style="width:80px; text-align:center;">Qty</th>
+            <th style="width:110px; text-align:right;">Unit Price</th>
+            <th style="width:110px; text-align:right;">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in order.items %}
+            <tr>
+              <td>
+                <div class="prod-name">{{ item.product_name }}</div>
+                <div class="prod-cat">{{ item.product_category | capitalize }}</div>
+              </td>
+              <td class="qty-col" style="text-align:center;">{{ item.quantity }}</td>
+              <td class="unit-price" style="text-align:right;">${{ "%.2f" | format(item.unit_price) }}</td>
+              <td class="line-total">${{ "%.2f" | format(item.line_total) }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {# ── Grand total ── #}
+    <div class="receipt-total-row">
+      <span class="lbl">Grand Total</span>
+      <span class="val">${{ "%.2f" | format(order.total) }}</span>
+    </div>
+
+    {# ── Shipping + actions ── #}
+    <div class="receipt-footer">
+      <div class="d-flex gap-4 flex-wrap">
+        <div class="shipping-block">
+          <div class="lbl">Shipping Address</div>
+          <div class="val" style="white-space:pre-line;">{{ order.address }}</div>
+        </div>
+        <div class="shipping-block">
+          <div class="lbl">Phone</div>
+          <div class="val">{{ order.phone }}</div>
+        </div>
+      </div>
+
+      <div class="receipt-actions">
+        <button class="btn-receipt outline" onclick="window.print()">
+          <iconify-icon icon="la:print"></iconify-icon>
+          Print
+        </button>
+        <a href="{{ url_for('shop.index') }}" class="btn-receipt primary">
+          <iconify-icon icon="la:store"></iconify-icon>
+          Continue Shopping
+        </a>
+      </div>
+    </div>
+
+  </div>{# /receipt-card #}
+
+  {# Customer order history shortcut #}
+  {% if not current_user.is_admin %}
+    <div class="text-center mt-4">
+      <a href="{{ url_for('orders.my_orders') }}"
+         style="font-family:var(--secondary-font); font-size:0.875rem; color:#908F8D; text-decoration:none;">
+        ← View all my orders
+      </a>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

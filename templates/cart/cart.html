@@ -77,27 +77,19 @@
   }
   .qty-btn {
     width: 34px; height: 34px;
-    border: none;
-    background: transparent;
-    cursor: pointer;
+    border: none; background: transparent; cursor: pointer;
     display: flex; align-items: center; justify-content: center;
-    font-size: 1.1rem;
-    color: #908F8D;
-    transition: background 0.15s, color 0.15s;
-    flex-shrink: 0;
+    font-size: 1.1rem; color: #908F8D;
+    transition: background 0.15s, color 0.15s; flex-shrink: 0;
   }
   .qty-btn:hover { background: #F9F3EC; color: var(--bs-body-color); }
   .qty-input {
-    width: 44px; height: 34px;
-    border: none;
+    width: 44px; height: 34px; border: none;
     border-left: 1px solid rgba(65,64,62,0.12);
     border-right: 1px solid rgba(65,64,62,0.12);
     text-align: center;
-    font-family: var(--secondary-font);
-    font-size: 0.9rem;
-    background: #fff;
-    color: var(--bs-body-color);
-    outline: none;
+    font-family: var(--secondary-font); font-size: 0.9rem;
+    background: #fff; color: var(--bs-body-color); outline: none;
     -moz-appearance: textfield;
   }
   .qty-input::-webkit-inner-spin-button,
@@ -105,28 +97,15 @@
 
   /* ── Remove button ───────────────────────────────────────────── */
   .btn-remove {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    background: none;
-    border: 1px solid rgba(192,57,43,0.25);
-    border-radius: 0.25rem;
-    cursor: pointer;
-    color: #c0392b;
-    font-family: var(--secondary-font);
-    font-size: 0.75rem;
-    font-weight: 500;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    background: none; border: 1px solid rgba(192,57,43,0.25);
+    border-radius: 0.25rem; cursor: pointer; color: #c0392b;
+    font-family: var(--secondary-font); font-size: 0.75rem; font-weight: 500;
+    letter-spacing: 0.04em; text-transform: uppercase;
     padding: 0.4rem 0.7rem;
-    transition: background 0.2s, border-color 0.2s, color 0.2s;
-    white-space: nowrap;
+    transition: background 0.2s, border-color 0.2s, color 0.2s; white-space: nowrap;
   }
-  .btn-remove:hover {
-    background: #c0392b;
-    border-color: #c0392b;
-    color: #fff;
-  }
+  .btn-remove:hover { background: #c0392b; border-color: #c0392b; color: #fff; }
   .btn-remove iconify-icon { font-size: 0.95rem; }
 
   /* ── Cart container card ─────────────────────────────────────── */
@@ -155,176 +134,183 @@
   .summary-card h4 { font-size: 1.2rem; margin-bottom: 1.2rem; }
   .summary-row {
     display: flex; justify-content: space-between;
-    font-family: var(--secondary-font);
-    font-size: 0.9rem;
+    font-family: var(--secondary-font); font-size: 0.9rem;
     padding: 0.5rem 0;
     border-bottom: 1px solid rgba(65,64,62,0.08);
   }
   .summary-row:last-of-type { border-bottom: none; }
   .summary-row .lbl { color: #908F8D; }
   .summary-total {
-    display: flex; justify-content: space-between;
-    align-items: baseline;
-    margin-top: 1rem;
-    padding-top: 1rem;
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-top: 1rem; padding-top: 1rem;
     border-top: 2px solid rgba(65,64,62,0.12);
   }
   .summary-total .lbl {
-    font-family: var(--secondary-font);
-    font-size: 0.85rem;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.07em;
-    color: #908F8D;
+    font-family: var(--secondary-font); font-size: 0.85rem; font-weight: 500;
+    text-transform: uppercase; letter-spacing: 0.07em; color: #908F8D;
   }
-  .summary-total .val {
-    font-size: 1.6rem;
-    font-weight: 400;
-    color: var(--bs-body-color);
-  }
+  .summary-total .val { font-size: 1.6rem; font-weight: 400; color: var(--bs-body-color); }
 
   .btn-checkout {
-    display: block; width: 100%;
-    padding: 1rem;
-    background: #41403E;
-    color: #fff;
-    border: none;
-    border-radius: 0.25rem;
-    font-family: var(--secondary-font);
-    font-size: 0.9rem;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.07em;
-    cursor: pointer;
-    transition: background 0.2s;
-    margin-top: 1.25rem;
+    display: block; width: 100%; padding: 1rem;
+    background: #41403E; color: #fff; border: none; border-radius: 0.25rem;
+    font-family: var(--secondary-font); font-size: 0.9rem; font-weight: 500;
+    text-transform: uppercase; letter-spacing: 0.07em;
+    cursor: pointer; transition: background 0.2s; margin-top: 1.25rem;
+    text-decoration: none; text-align: center;
   }
-  .btn-checkout:hover { background: #2e2d2b; }
+  .btn-checkout:hover { background: #2e2d2b; color: #fff; }
 
   .btn-continue {
     display: block; text-align: center;
-    font-family: var(--secondary-font);
-    font-size: 0.82rem;
-    color: #908F8D;
-    margin-top: 0.75rem;
-    text-decoration: none;
+    font-family: var(--secondary-font); font-size: 0.82rem; color: #908F8D;
+    margin-top: 0.75rem; text-decoration: none;
   }
   .btn-continue:hover { color: var(--bs-body-color); }
 
   /* ── Empty state ─────────────────────────────────────────────── */
-  .cart-empty {
-    padding: 4rem 1rem;
-    text-align: center;
-  }
+  .cart-empty { padding: 4rem 1rem; text-align: center; }
   .cart-empty iconify-icon { font-size: 4rem; color: #D9D9D8; }
   .cart-empty h3 { font-size: 1.4rem; margin: 1rem 0 0.5rem; font-weight: 400; }
   .cart-empty p { font-family: var(--secondary-font); font-size: 0.9rem; color: #908F8D; }
 
   /* ── Toast notification ──────────────────────────────────────── */
   #cart-toast {
-    position: fixed;
-    bottom: 1.5rem; right: 1.5rem;
-    background: #41403E;
-    color: #fff;
-    padding: 0.9rem 1.4rem;
-    border-radius: 0.4rem;
-    font-family: var(--secondary-font);
-    font-size: 0.875rem;
-    box-shadow: 0 6px 24px rgba(0,0,0,0.18);
-    z-index: 9999;
-    transform: translateY(6px);
-    opacity: 0;
+    position: fixed; bottom: 1.5rem; right: 1.5rem;
+    background: #41403E; color: #fff;
+    padding: 0.9rem 1.4rem; border-radius: 0.4rem;
+    font-family: var(--secondary-font); font-size: 0.875rem;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.18); z-index: 9999;
+    transform: translateY(6px); opacity: 0;
     transition: opacity 0.25s, transform 0.25s;
-    pointer-events: none;
-    max-width: 320px;
+    pointer-events: none; max-width: 320px;
   }
   #cart-toast.show { opacity: 1; transform: translateY(0); }
 
-  /* ── Confirmation modal ──────────────────────────────────────── */
+  /* ── Remove confirm modal ────────────────────────────────────── */
   .confirm-backdrop {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.45);
-    z-index: 1055;
-    align-items: center;
-    justify-content: center;
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.45); z-index: 1055;
+    align-items: center; justify-content: center;
     animation: backdropFadeIn 0.2s ease;
   }
   .confirm-backdrop.show { display: flex; }
-
-  @keyframes backdropFadeIn {
-    from { opacity: 0; }
-    to   { opacity: 1; }
-  }
+  @keyframes backdropFadeIn { from { opacity: 0; } to { opacity: 1; } }
 
   .confirm-modal {
-    background: #fff;
-    border-radius: 0.75rem;
-    padding: 2rem 2rem 1.5rem;
-    max-width: 380px;
-    width: 90%;
+    background: #fff; border-radius: 0.75rem;
+    padding: 2rem 2rem 1.5rem; max-width: 380px; width: 90%;
     box-shadow: 0 16px 56px rgba(0,0,0,0.2);
     animation: modalSlideUp 0.2s ease;
   }
-
   @keyframes modalSlideUp {
     from { opacity: 0; transform: translateY(12px); }
     to   { opacity: 1; transform: translateY(0); }
   }
-
   .confirm-modal__icon {
-    width: 48px; height: 48px;
-    border-radius: 50%;
+    width: 48px; height: 48px; border-radius: 50%;
     background: rgba(192,57,43,0.1);
-    display: flex; align-items: center; justify-content: center;
-    margin-bottom: 1rem;
+    display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;
   }
   .confirm-modal__icon iconify-icon { font-size: 1.5rem; color: #c0392b; }
-  .confirm-modal h5 {
-    font-size: 1.1rem;
-    font-weight: 400;
-    margin-bottom: 0.5rem;
-  }
-  .confirm-modal p {
-    font-family: var(--secondary-font);
-    font-size: 0.875rem;
-    color: #908F8D;
-    margin-bottom: 1.5rem;
-    line-height: 1.6;
-  }
+  .confirm-modal h5 { font-size: 1.1rem; font-weight: 400; margin-bottom: 0.5rem; }
+  .confirm-modal p { font-family: var(--secondary-font); font-size: 0.875rem; color: #908F8D; margin-bottom: 1.5rem; line-height: 1.6; }
   .confirm-modal p strong { color: var(--bs-body-color); }
-  .confirm-modal__actions {
-    display: flex;
-    gap: 0.6rem;
-    justify-content: flex-end;
-  }
+  .confirm-modal__actions { display: flex; gap: 0.6rem; justify-content: flex-end; }
   .btn-confirm-cancel {
-    padding: 0.6rem 1.2rem;
-    background: transparent;
-    border: 1px solid rgba(65,64,62,0.2);
-    border-radius: 0.25rem;
-    font-family: var(--secondary-font);
-    font-size: 0.85rem;
-    font-weight: 500;
-    color: #908F8D;
-    cursor: pointer;
-    transition: all 0.15s;
+    padding: 0.6rem 1.2rem; background: transparent;
+    border: 1px solid rgba(65,64,62,0.2); border-radius: 0.25rem;
+    font-family: var(--secondary-font); font-size: 0.85rem; font-weight: 500;
+    color: #908F8D; cursor: pointer; transition: all 0.15s;
   }
-  .btn-confirm-cancel:hover { background: #F9F3EC; color: var(--bs-body-color); border-color: rgba(65,64,62,0.35); }
+  .btn-confirm-cancel:hover { background: #F9F3EC; color: var(--bs-body-color); }
   .btn-confirm-remove {
-    padding: 0.6rem 1.2rem;
-    background: #c0392b;
-    border: 1px solid #c0392b;
-    border-radius: 0.25rem;
-    font-family: var(--secondary-font);
-    font-size: 0.85rem;
-    font-weight: 500;
-    color: #fff;
-    cursor: pointer;
+    padding: 0.6rem 1.2rem; background: #c0392b; border: 1px solid #c0392b;
+    border-radius: 0.25rem; font-family: var(--secondary-font);
+    font-size: 0.85rem; font-weight: 500; color: #fff; cursor: pointer;
     transition: background 0.15s;
   }
   .btn-confirm-remove:hover { background: #a93226; border-color: #a93226; }
+
+  /* ── Checkout modal ──────────────────────────────────────────── */
+  .checkout-modal-content {
+    border-radius: 1rem !important;
+    border: none !important;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.18);
+    overflow: hidden;
+  }
+  .checkout-modal-header {
+    background: #F9F3EC;
+    border-bottom: 1px solid rgba(65,64,62,0.08);
+    padding: 1.5rem 2rem;
+  }
+  .checkout-modal-header .modal-title { font-size: 1.5rem; font-weight: 400; }
+  .checkout-modal-body { padding: 2rem; }
+  .checkout-modal-footer {
+    border-top: 1px solid rgba(65,64,62,0.08);
+    padding: 1.25rem 2rem;
+    background: #FAFAF9;
+  }
+
+  /* shared form styles */
+  .co-field-label {
+    font-family: var(--secondary-font); font-size: 0.72rem; font-weight: 500;
+    letter-spacing: 0.1em; text-transform: uppercase; color: #908F8D;
+    margin-bottom: 0.4rem; display: block;
+  }
+  .co-input {
+    width: 100%; border: 1px solid rgba(65,64,62,0.20); border-radius: 0.25rem;
+    background: #fff; padding: 0.85rem 1rem;
+    font-family: var(--secondary-font); font-size: 0.95rem;
+    color: var(--bs-body-color); transition: border-color 0.2s;
+    outline: none; appearance: none;
+  }
+  .co-input::placeholder { color: #CACACA; }
+  .co-input:focus { border-color: #DEAD6F; box-shadow: 0 0 0 3px rgba(222,173,111,0.15); }
+  .co-input.is-invalid { border-color: #c0392b; }
+  textarea.co-input { resize: vertical; min-height: 100px; }
+
+  /* order summary inside modal */
+  .co-summary {
+    background: #FAFAF9;
+    border: 1px solid rgba(65,64,62,0.08);
+    border-radius: 0.6rem;
+    padding: 1rem;
+  }
+  .co-summary-row {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    padding: 0.45rem 0;
+    border-bottom: 1px solid rgba(65,64,62,0.06);
+    font-size: 0.875rem;
+  }
+  .co-summary-row:last-of-type { border-bottom: none; }
+  .co-summary-row .name { color: var(--bs-body-color); flex: 1; margin-right: 0.5rem; }
+  .co-summary-row .qty { font-family: var(--secondary-font); font-size: 0.75rem; color: #CACACA; }
+  .co-summary-row .price { font-family: var(--secondary-font); color: #DEAD6F; font-weight: 500; white-space: nowrap; }
+  .co-summary-total {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-top: 0.75rem; padding-top: 0.6rem;
+    border-top: 2px solid rgba(65,64,62,0.10);
+  }
+  .co-summary-total .lbl { font-family: var(--secondary-font); font-size: 0.75rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.07em; color: #908F8D; }
+  .co-summary-total .val { font-size: 1.25rem; font-weight: 400; color: var(--bs-body-color); }
+
+  .btn-confirm-order {
+    padding: 0.85rem 2rem; background: #41403E; color: #fff;
+    border: none; border-radius: 0.25rem;
+    font-family: var(--secondary-font); font-size: 0.875rem; font-weight: 500;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    cursor: pointer; transition: background 0.2s;
+  }
+  .btn-confirm-order:hover { background: #2e2d2b; }
+  .btn-confirm-order:disabled { opacity: 0.6; cursor: not-allowed; }
+  .btn-cancel-order {
+    padding: 0.85rem 1.5rem; background: transparent;
+    border: 1px solid rgba(65,64,62,0.20); border-radius: 0.25rem;
+    font-family: var(--secondary-font); font-size: 0.875rem;
+    color: #908F8D; cursor: pointer; transition: all 0.15s;
+  }
+  .btn-cancel-order:hover { background: #F9F3EC; color: var(--bs-body-color); }
 
   /* ── Responsive tweaks ───────────────────────────────────────── */
   @media (max-width: 575px) {
@@ -379,46 +365,33 @@
             {% for item in items %}
               <div class="cart-item" id="cart-row-{{ item.product.id }}">
 
-                {# Thumbnail #}
-                <img
-                  class="cart-thumb"
-                  src="{{ url_for('static', filename=item.product.image_url) }}"
-                  alt="{{ item.product.name }}"
-                  onerror="this.src='{{ url_for('static', filename='images/item1.jpg') }}'"
-                >
+                <img class="cart-thumb"
+                     src="{{ url_for('static', filename=item.product.image_url) }}"
+                     alt="{{ item.product.name }}"
+                     onerror="this.src='{{ url_for('static', filename='images/item1.jpg') }}'">
 
-                {# Name + category #}
                 <div>
                   <a href="{{ url_for('shop.product_detail', slug=item.product.slug) }}"
                      class="cart-item__name">{{ item.product.name }}</a>
                   <div class="cart-item__cat">{{ item.product.category_label }}</div>
                 </div>
 
-                {# Unit price #}
                 <div class="cart-item__price">${{ "%.2f" | format(item.product.price) }}</div>
 
-                {# Quantity stepper #}
                 <div class="qty-stepper">
                   <button type="button" class="qty-btn"
                           onclick="stepQty({{ item.product.id }}, -1, '{{ item.product.name | replace("'", "\\'") }}')">−</button>
-                  <input
-                    type="number"
-                    class="qty-input"
-                    id="qty-{{ item.product.id }}"
-                    value="{{ item.quantity }}"
-                    min="0" max="99"
-                    onchange="handleQtyChange({{ item.product.id }}, this.value, '{{ item.product.name | replace("'", "\\'") }}')"
-                  >
+                  <input type="number" class="qty-input" id="qty-{{ item.product.id }}"
+                         value="{{ item.quantity }}" min="0" max="99"
+                         onchange="handleQtyChange({{ item.product.id }}, this.value, '{{ item.product.name | replace("'", "\\'") }}')">
                   <button type="button" class="qty-btn"
                           onclick="stepQty({{ item.product.id }}, 1, '{{ item.product.name | replace("'", "\\'") }}')">+</button>
                 </div>
 
-                {# Line total #}
                 <div class="cart-item__line-total" id="line-total-{{ item.product.id }}">
                   ${{ "%.2f" | format(item.product.price * item.quantity) }}
                 </div>
 
-                {# Remove #}
                 <button type="button" class="btn-remove"
                         onclick="confirmRemove({{ item.product.id }}, '{{ item.product.name | replace("'", "\\'") }}')">
                   <iconify-icon icon="la:trash-alt"></iconify-icon>
@@ -443,9 +416,7 @@
           </div>
           <div class="summary-row">
             <span class="lbl">Shipping</span>
-            <span class="text-success" style="font-family:var(--secondary-font); font-size:0.85rem;">
-              Free
-            </span>
+            <span class="text-success" style="font-family:var(--secondary-font); font-size:0.85rem;">Free</span>
           </div>
           <div class="summary-row">
             <span class="lbl">Tax</span>
@@ -457,24 +428,25 @@
             <span class="val" id="summary-total">${{ "%.2f" | format(total) }}</span>
           </div>
 
-          <form method="POST" action="{{ url_for('cart.checkout') }}">
-            <button type="submit" class="btn-checkout">
+          {# ── Checkout trigger ── #}
+          {% if current_user.is_authenticated %}
+            <button type="button" class="btn-checkout"
+                    data-bs-toggle="modal" data-bs-target="#checkoutModal">
               <iconify-icon icon="la:lock" style="font-size:1rem; vertical-align:-2px; margin-right:0.35rem;"></iconify-icon>
               Proceed to Checkout
             </button>
-          </form>
-
-          {% if not current_user.is_authenticated %}
-            <p class="mt-3 mb-0" style="font-family:var(--secondary-font); font-size:0.8rem; color:#908F8D; text-align:center;">
-              <iconify-icon icon="la:info-circle" style="vertical-align:-2px;"></iconify-icon>
-              <a href="{{ url_for('auth.login') }}" style="color:#DEAD6F;">Sign in</a>
-              to save your cart permanently.
+          {% else %}
+            <a href="{{ url_for('auth.login') }}?next={{ request.path }}"
+               class="btn-checkout">
+              <iconify-icon icon="healthicons:person" style="font-size:1rem; vertical-align:-2px; margin-right:0.35rem;"></iconify-icon>
+              Sign in to Checkout
+            </a>
+            <p class="mt-2 mb-0" style="font-family:var(--secondary-font); font-size:0.78rem; color:#908F8D; text-align:center;">
+              You need an account to place an order.
             </p>
           {% endif %}
 
-          <a href="{{ url_for('shop.index') }}" class="btn-continue">
-            ← Continue shopping
-          </a>
+          <a href="{{ url_for('shop.index') }}" class="btn-continue">← Continue shopping</a>
         </div>
       </div>
 
@@ -482,7 +454,6 @@
 
   {% else %}
 
-    {# ── Empty cart ─────────────────────────────────────────────────────────── #}
     <div class="cart-card">
       <div class="cart-empty">
         <iconify-icon icon="la:shopping-cart"></iconify-icon>
@@ -500,23 +471,123 @@
 
 </div>
 
-{# Toast notification #}
+{# Toast #}
 <div id="cart-toast"></div>
 
-{# ── Confirmation modal ────────────────────────────────────────────────────── #}
+{# ── Remove item confirm modal ─────────────────────────────────────────────── #}
 <div class="confirm-backdrop" id="confirmBackdrop">
   <div class="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
     <div class="confirm-modal__icon">
       <iconify-icon icon="la:trash-alt"></iconify-icon>
     </div>
     <h5 id="confirmTitle">Remove item?</h5>
-    <p id="confirmMessage">Are you sure you want to remove <strong id="confirmProductName"></strong> from your cart?</p>
+    <p>Are you sure you want to remove <strong id="confirmProductName"></strong> from your cart?</p>
     <div class="confirm-modal__actions">
       <button type="button" class="btn-confirm-cancel" onclick="closeConfirm()">Keep it</button>
       <button type="button" class="btn-confirm-remove" onclick="executeRemove()">Yes, remove</button>
     </div>
   </div>
 </div>
+
+{# ── Checkout modal ────────────────────────────────────────────────────────── #}
+{% if current_user.is_authenticated and items %}
+<div class="modal fade" id="checkoutModal" tabindex="-1"
+     aria-labelledby="checkoutModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content checkout-modal-content">
+
+      <div class="checkout-modal-header modal-header">
+        <h4 class="modal-title fw-normal" id="checkoutModalLabel">
+          Complete Your <span class="text-primary">Order</span>
+        </h4>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <form method="POST" action="{{ url_for('cart.checkout') }}"
+            id="checkout-form" novalidate>
+        <div class="checkout-modal-body">
+          <div class="row g-4">
+
+            {# ── Left: order summary ── #}
+            <div class="col-md-5">
+              <p class="co-field-label mb-2">Order Summary</p>
+              <div class="co-summary">
+                {% for item in items %}
+                  <div class="co-summary-row">
+                    <div>
+                      <div class="name">{{ item.product.name }}</div>
+                      <div class="qty">Qty: {{ item.quantity }}</div>
+                    </div>
+                    <div class="price">${{ "%.2f" | format(item.product.price * item.quantity) }}</div>
+                  </div>
+                {% endfor %}
+                <div class="co-summary-total">
+                  <span class="lbl">Total</span>
+                  <span class="val">${{ "%.2f" | format(total) }}</span>
+                </div>
+              </div>
+
+              <div style="margin-top: 1rem; padding: 0.75rem; background: rgba(222,173,111,0.08); border-radius: 0.4rem; border: 1px solid rgba(222,173,111,0.2);">
+                <p style="font-family:var(--secondary-font); font-size:0.78rem; color:#908F8D; margin:0; line-height:1.6;">
+                  <iconify-icon icon="la:envelope" style="vertical-align:-2px; color:#DEAD6F;"></iconify-icon>
+                  A receipt will be emailed to<br>
+                  <strong style="color:var(--bs-body-color);">{{ current_user.email }}</strong>
+                </p>
+              </div>
+            </div>
+
+            {# ── Right: shipping details ── #}
+            <div class="col-md-7">
+              <p class="co-field-label mb-3">Shipping Details</p>
+
+              <div class="mb-3">
+                <label class="co-field-label" for="checkout-phone">
+                  Phone Number <span style="color:#c0392b;">*</span>
+                </label>
+                <input type="tel" class="co-input" id="checkout-phone" name="phone"
+                       placeholder="+1 (555) 000-0000"
+                       autocomplete="tel" required>
+                <div class="invalid-feedback" id="phone-error" style="display:none; color:#c0392b; font-family:var(--secondary-font); font-size:0.8rem; margin-top:0.3rem;">
+                  Please enter a phone number.
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <label class="co-field-label" for="checkout-address">
+                  Shipping Address <span style="color:#c0392b;">*</span>
+                </label>
+                <textarea class="co-input" id="checkout-address" name="address"
+                          placeholder="Street address&#10;City, State, ZIP&#10;Country"
+                          rows="4" autocomplete="street-address" required></textarea>
+                <div class="invalid-feedback" id="address-error" style="display:none; color:#c0392b; font-family:var(--secondary-font); font-size:0.8rem; margin-top:0.3rem;">
+                  Please enter a shipping address.
+                </div>
+              </div>
+
+              <p style="font-family:var(--secondary-font); font-size:0.78rem; color:#CACACA; margin:0;">
+                <iconify-icon icon="la:shield-alt" style="vertical-align:-2px; color:#5aab5a;"></iconify-icon>
+                Your information is secure and only used to fulfil your order.
+              </p>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="checkout-modal-footer modal-footer d-flex gap-2 justify-content-end">
+          <button type="button" class="btn-cancel-order" data-bs-dismiss="modal">
+            Cancel
+          </button>
+          <button type="submit" class="btn-confirm-order" id="confirm-order-btn">
+            <iconify-icon icon="la:lock" style="font-size:1rem; vertical-align:-2px; margin-right:0.35rem;"></iconify-icon>
+            Confirm Order — ${{ "%.2f" | format(total) }}
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+</div>
+{% endif %}
 
 {% endblock %}
 
@@ -548,24 +619,15 @@
   // ── Quantity stepper ──────────────────────────────────────────────────────
   function stepQty(pid, delta, productName) {
     const input = document.getElementById('qty-' + pid);
-    const current = parseInt(input.value) || 1;
-    const newVal = current + delta;
-
-    if (newVal <= 0) {
-      // Stepping down to zero means remove — ask first
-      confirmRemove(pid, productName);
-      return;
-    }
-
+    const newVal = (parseInt(input.value) || 1) + delta;
+    if (newVal <= 0) { confirmRemove(pid, productName); return; }
     input.value = Math.min(99, newVal);
     applyQtyUpdate(pid, input.value);
   }
 
-  // Called when the user manually edits the input field and leaves it
   function handleQtyChange(pid, val, productName) {
     const qty = parseInt(val);
     if (isNaN(qty) || qty <= 0) {
-      // Restore the visual immediately; the real action comes from the confirm
       document.getElementById('qty-' + pid).value = 1;
       confirmRemove(pid, productName);
       return;
@@ -576,16 +638,13 @@
   }
 
   function applyQtyUpdate(pid, qty) {
-    // Optimistic line-total update
     const lineEl = document.getElementById('line-total-' + pid);
     if (lineEl && PRICES[pid] != null) {
       lineEl.textContent = '$' + (PRICES[pid] * qty).toFixed(2);
     }
-
     const fd = new FormData();
     fd.append('product_id', pid);
     fd.append('quantity', qty);
-
     fetch('{{ url_for("cart.update_cart") }}', { method: 'POST', body: fd })
       .then(r => r.json())
       .then(data => {
@@ -598,44 +657,34 @@
       .catch(() => showToast('Failed to update cart.', true));
   }
 
-  // ── Confirmation modal ────────────────────────────────────────────────────
+  // ── Remove confirm ────────────────────────────────────────────────────────
   let _pendingRemovePid = null;
 
   function confirmRemove(pid, productName) {
     _pendingRemovePid = pid;
     document.getElementById('confirmProductName').textContent = productName;
     document.getElementById('confirmBackdrop').classList.add('show');
-
-    // Trap focus on the modal
-    setTimeout(() => {
-      document.querySelector('.btn-confirm-cancel').focus();
-    }, 50);
+    setTimeout(() => document.querySelector('.btn-confirm-cancel').focus(), 50);
   }
 
   function closeConfirm() {
     document.getElementById('confirmBackdrop').classList.remove('show');
-
-    // If the user opened this by typing 0, restore the input to 1
     if (_pendingRemovePid !== null) {
       const input = document.getElementById('qty-' + _pendingRemovePid);
       if (input && (parseInt(input.value) <= 0 || isNaN(parseInt(input.value)))) {
         input.value = 1;
       }
     }
-
     _pendingRemovePid = null;
   }
 
   function executeRemove() {
     const pid = _pendingRemovePid;
     if (pid === null) return;
-
     document.getElementById('confirmBackdrop').classList.remove('show');
     _pendingRemovePid = null;
-
     const fd = new FormData();
     fd.append('product_id', pid);
-
     fetch('{{ url_for("cart.remove_from_cart") }}', { method: 'POST', body: fd })
       .then(r => r.json())
       .then(data => {
@@ -644,10 +693,7 @@
           if (row) {
             row.style.opacity = '0';
             row.style.transform = 'translateX(20px)';
-            setTimeout(() => {
-              row.remove();
-              if (data.count === 0) location.reload();
-            }, 300);
+            setTimeout(() => { row.remove(); if (data.count === 0) location.reload(); }, 300);
           }
           document.getElementById('summary-subtotal').textContent = '$' + data.total;
           document.getElementById('summary-total').textContent    = '$' + data.total;
@@ -658,12 +704,58 @@
       .catch(() => showToast('Failed to remove item.', true));
   }
 
-  // Close modal on backdrop click or Escape key
   document.getElementById('confirmBackdrop').addEventListener('click', function(e) {
     if (e.target === this) closeConfirm();
   });
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') closeConfirm();
   });
+
+  // ── Checkout form validation ───────────────────────────────────────────────
+  const checkoutForm = document.getElementById('checkout-form');
+  if (checkoutForm) {
+    checkoutForm.addEventListener('submit', function(e) {
+      let valid = true;
+
+      const phone   = document.getElementById('checkout-phone');
+      const address = document.getElementById('checkout-address');
+      const phoneErr   = document.getElementById('phone-error');
+      const addressErr = document.getElementById('address-error');
+
+      // Reset
+      phone.classList.remove('is-invalid');
+      address.classList.remove('is-invalid');
+      phoneErr.style.display   = 'none';
+      addressErr.style.display = 'none';
+
+      if (!phone.value.trim()) {
+        phone.classList.add('is-invalid');
+        phoneErr.style.display = 'block';
+        valid = false;
+      }
+      if (!address.value.trim()) {
+        address.classList.add('is-invalid');
+        addressErr.style.display = 'block';
+        valid = false;
+      }
+
+      if (!valid) {
+        e.preventDefault();
+        return;
+      }
+
+      // Disable button to prevent double-submit
+      const btn = document.getElementById('confirm-order-btn');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML =
+          '<iconify-icon icon="la:spinner" style="animation:spin 1s linear infinite; font-size:1rem; vertical-align:-2px; margin-right:0.35rem;"></iconify-icon>' +
+          'Placing order…';
+      }
+    });
+  }
 </script>
+<style>
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+</style>
 {% endblock %}

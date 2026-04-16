@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% block title %}My Orders — Waggy{% endblock %}
+
+{% block extra_css %}
+<style>
+  .orders-hero {
+    background: #F9F3EC;
+    border-bottom: 1px solid rgba(65,64,62,0.08);
+    padding: 2.5rem 0 2rem;
+  }
+  .orders-hero h1 { font-size: clamp(1.8rem,3.5vw,2.5rem); margin-bottom: 0; }
+
+  .orders-card {
+    background: #fff;
+    border: 1px solid rgba(65,64,62,0.08);
+    border-radius: 0.75rem;
+    overflow: hidden;
+  }
+  .orders-table { width: 100%; border-collapse: collapse; }
+  .orders-table th {
+    font-family: var(--secondary-font); font-size: 0.72rem; font-weight: 500;
+    letter-spacing: 0.1em; text-transform: uppercase; color: #908F8D;
+    border-bottom: 1px solid rgba(65,64,62,0.12); padding: 0.75rem 1.25rem;
+    text-align: left; white-space: nowrap;
+  }
+  .orders-table td {
+    padding: 1rem 1.25rem; vertical-align: middle;
+    border-bottom: 1px solid rgba(65,64,62,0.06);
+  }
+  .orders-table tr:last-child td { border-bottom: none; }
+  .orders-table tr:hover td { background: #FAFAF9; }
+
+  .receipt-link {
+    font-family: var(--secondary-font); font-size: 0.875rem;
+    font-weight: 500; color: #DEAD6F; text-decoration: none;
+    letter-spacing: 0.03em;
+  }
+  .receipt-link:hover { color: #d4a254; }
+
+  .status-badge {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    font-family: var(--secondary-font); font-size: 0.75rem; font-weight: 600;
+    padding: 0.3rem 0.75rem; border-radius: 2rem;
+    text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap;
+  }
+  .status-dot { width: 6px; height: 6px; border-radius: 50%; }
+
+  .empty-orders {
+    padding: 4rem 1rem; text-align: center;
+  }
+  .empty-orders iconify-icon { font-size: 3.5rem; color: #D9D9D8; }
+  .empty-orders h3 { font-size: 1.4rem; margin: 1rem 0 0.5rem; font-weight: 400; }
+  .empty-orders p { font-family: var(--secondary-font); font-size: 0.9rem; color: #908F8D; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="orders-hero">
+  <div class="container">
+    <nav aria-label="breadcrumb" class="mb-2">
+      <ol class="breadcrumb mb-0" style="font-family:var(--secondary-font); font-size:0.83rem;">
+        <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}" class="text-muted text-decoration-none">Home</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('main.dashboard') }}" class="text-muted text-decoration-none">Dashboard</a></li>
+        <li class="breadcrumb-item active text-muted">My Orders</li>
+      </ol>
+    </nav>
+    <h1 class="fw-normal">My <span class="text-primary">Orders</span></h1>
+    <p class="secondary-font mb-0" style="color:#908F8D; font-size:0.9rem;">
+      {{ orders | length }} order{{ 's' if orders | length != 1 }} placed
+    </p>
+  </div>
+</div>
+
+<div class="container my-5">
+  {% if orders %}
+    <div class="orders-card">
+      <div style="overflow-x:auto;">
+        <table class="orders-table">
+          <thead>
+            <tr>
+              <th>Receipt ID</th>
+              <th>Date</th>
+              <th>Items</th>
+              <th>Total</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for order in orders %}
+              <tr>
+                <td>
+                  <a href="{{ url_for('orders.receipt', receipt_id=order.receipt_id) }}"
+                     class="receipt-link">{{ order.receipt_id }}</a>
+                </td>
+                <td style="font-family:var(--secondary-font); font-size:0.875rem; color:#908F8D; white-space:nowrap;">
+                  {{ order.created_at.strftime('%d %b %Y') }}
+                </td>
+                <td style="font-family:var(--secondary-font); font-size:0.875rem;">
+                  {{ order.item_count }} item{{ 's' if order.item_count != 1 }}
+                </td>
+                <td style="font-family:var(--secondary-font); font-size:0.95rem; font-weight:500; color:#DEAD6F; white-space:nowrap;">
+                  ${{ "%.2f" | format(order.total) }}
+                </td>
+                <td>
+                  {% set s = order.status_style %}
+                  <span class="status-badge" style="background:{{ s.bg }}; color:{{ s.color }};">
+                    <span class="status-dot" style="background:{{ s.dot }};"></span>
+                    {{ order.status_label }}
+                  </span>
+                </td>
+                <td>
+                  <a href="{{ url_for('orders.receipt', receipt_id=order.receipt_id) }}"
+                     class="btn btn-sm btn-outline-dark rounded-1"
+                     style="font-family:var(--secondary-font); font-size:0.78rem; padding:0.3rem 0.75rem;">
+                    View Receipt
+                  </a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  {% else %}
+    <div class="orders-card">
+      <div class="empty-orders">
+        <iconify-icon icon="la:shopping-bag"></iconify-icon>
+        <h3>No orders yet</h3>
+        <p>Your order history will appear here once you've placed an order.</p>
+        <a href="{{ url_for('shop.index') }}"
+           class="btn btn-outline-dark rounded-1 mt-2"
+           style="font-size:0.875rem; padding:0.6rem 1.8rem;">
+          Browse the Shop
+        </a>
+      </div>
+    </div>
+  {% endif %}
+</div>
+
+{% endblock %}

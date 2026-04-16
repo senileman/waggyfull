@@ -50,10 +50,7 @@
     box-shadow: 0 6px 24px rgba(65, 64, 62, 0.09);
   }
   .stat-card iconify-icon { font-size: 2rem; color: var(--accent-color); }
-  .stat-value {
-    font-size: 2rem; line-height: 1.1;
-    margin: 0.5rem 0 0.2rem;
-  }
+  .stat-value { font-size: 2rem; line-height: 1.1; margin: 0.5rem 0 0.2rem; }
   .stat-lbl {
     font-family: var(--secondary-font);
     font-size: 0.78rem; letter-spacing: 0.08em;
@@ -140,11 +137,12 @@
       </div>
     {% endif %}
     <div class="col-6 col-md-3">
-      <div class="stat-card">
+      <a href="{% if current_user.is_admin %}{{ url_for('orders.orders_list') }}{% else %}{{ url_for('orders.my_orders') }}{% endif %}"
+         class="stat-card text-decoration-none d-block">
         <iconify-icon icon="la:shopping-bag"></iconify-icon>
-        <div class="stat-value">0</div>
-        <div class="stat-lbl">Orders</div>
-      </div>
+        <div class="stat-value">{{ current_user.orders | length }}</div>
+        <div class="stat-lbl">{% if current_user.is_admin %}All Orders{% else %}My Orders{% endif %}</div>
+      </a>
     </div>
     <div class="col-6 col-md-3">
       <div class="stat-card">
@@ -217,13 +215,13 @@
             </a>
           </div>
           <div class="col-6 col-sm-4">
-            <a href="#" class="quick-link">
+            <a href="{{ url_for('shop.change_listing') }}" class="quick-link">
               <iconify-icon icon="la:box-open"></iconify-icon>
               <span>Manage Products</span>
             </a>
           </div>
           <div class="col-6 col-sm-4">
-            <a href="#" class="quick-link">
+            <a href="{{ url_for('orders.orders_list') }}" class="quick-link">
               <iconify-icon icon="la:clipboard-list"></iconify-icon>
               <span>View Orders</span>
             </a>
@@ -242,7 +240,7 @@
             </a>
           </div>
           <div class="col-6 col-sm-4">
-            <a href="#" class="quick-link">
+            <a href="{{ url_for('orders.my_orders') }}" class="quick-link">
               <iconify-icon icon="la:clipboard-list"></iconify-icon>
               <span>My Orders</span>
             </a>

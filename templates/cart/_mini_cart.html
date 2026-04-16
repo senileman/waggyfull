@@ -1,9 +1,7 @@
 {# templates/cart/_mini_cart.html
    Rendered by GET /cart/mini and injected into the offcanvas body.
    No {% extends %} — this is a partial fragment only.
-   NOTE: all JS functions (miniConfirmRemove / miniCancelConfirm / miniDoRemove)
-         live in base.html because scripts inside innerHTML-injected HTML
-         are silently ignored by the browser.
+   NOTE: JS functions live in base.html (scripts inside innerHTML are not executed).
 #}
 <style>
   .mini-item {
@@ -31,143 +29,71 @@
     margin-bottom: 0.15rem;
   }
   .mini-name:hover { color: #DEAD6F; }
-  .mini-meta {
-    font-family: var(--secondary-font);
-    font-size: 0.75rem;
-    color: #908F8D;
-  }
+  .mini-meta { font-family: var(--secondary-font); font-size: 0.75rem; color: #908F8D; }
   .mini-price {
-    font-family: var(--secondary-font);
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: #DEAD6F;
-    white-space: nowrap;
-    text-align: right;
+    font-family: var(--secondary-font); font-size: 0.875rem;
+    font-weight: 500; color: #DEAD6F; white-space: nowrap; text-align: right;
   }
   .mini-btn-remove {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-    background: none;
-    border: 1px solid rgba(192,57,43,0.25);
-    border-radius: 0.25rem;
-    cursor: pointer;
-    color: #c0392b;
-    font-family: var(--secondary-font);
-    font-size: 0.7rem;
-    font-weight: 500;
-    letter-spacing: 0.03em;
-    text-transform: uppercase;
-    padding: 0.25rem 0.5rem;
-    margin-top: 0.3rem;
-    transition: background 0.2s, color 0.2s;
+    display: inline-flex; align-items: center; gap: 0.25rem;
+    background: none; border: 1px solid rgba(192,57,43,0.25); border-radius: 0.25rem;
+    cursor: pointer; color: #c0392b;
+    font-family: var(--secondary-font); font-size: 0.7rem; font-weight: 500;
+    letter-spacing: 0.03em; text-transform: uppercase;
+    padding: 0.25rem 0.5rem; margin-top: 0.3rem; transition: background 0.2s, color 0.2s;
   }
   .mini-btn-remove:hover { background: #c0392b; color: #fff; border-color: #c0392b; }
   .mini-btn-remove iconify-icon { font-size: 0.85rem; }
 
   .mini-total-row {
     display: flex; justify-content: space-between; align-items: baseline;
-    padding: 0.85rem 0 0;
-    border-top: 2px solid rgba(65,64,62,0.1);
-    margin-top: 0.25rem;
+    padding: 0.85rem 0 0; border-top: 2px solid rgba(65,64,62,0.1); margin-top: 0.25rem;
   }
   .mini-total-lbl {
-    font-family: var(--secondary-font);
-    font-size: 0.78rem;
-    font-weight: 500;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: #908F8D;
+    font-family: var(--secondary-font); font-size: 0.78rem; font-weight: 500;
+    letter-spacing: 0.08em; text-transform: uppercase; color: #908F8D;
   }
-  .mini-total-val {
-    font-size: 1.3rem;
-    color: var(--bs-body-color);
-  }
+  .mini-total-val { font-size: 1.3rem; color: var(--bs-body-color); }
   .btn-view-cart {
-    display: block; width: 100%;
-    padding: 0.85rem;
-    background: #DEAD6F;
-    color: #fff;
-    border: none;
-    border-radius: 0.25rem;
-    font-family: var(--secondary-font);
-    font-size: 0.85rem;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    text-decoration: none;
-    text-align: center;
-    margin-top: 1rem;
-    transition: background 0.2s;
+    display: block; width: 100%; padding: 0.85rem;
+    background: #DEAD6F; color: #fff; border: none; border-radius: 0.25rem;
+    font-family: var(--secondary-font); font-size: 0.85rem; font-weight: 500;
+    text-transform: uppercase; letter-spacing: 0.05em; text-decoration: none;
+    text-align: center; margin-top: 1rem; transition: background 0.2s;
   }
   .btn-view-cart:hover { background: #d4a254; color: #fff; }
   .btn-checkout-mini {
-    display: block; width: 100%;
-    padding: 0.85rem;
-    background: #41403E;
-    color: #fff;
-    border: none;
-    border-radius: 0.25rem;
-    font-family: var(--secondary-font);
-    font-size: 0.85rem;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    cursor: pointer;
-    margin-top: 0.5rem;
-    transition: background 0.2s;
+    display: block; width: 100%; padding: 0.85rem;
+    background: #41403E; color: #fff; border: none; border-radius: 0.25rem;
+    font-family: var(--secondary-font); font-size: 0.85rem; font-weight: 500;
+    text-transform: uppercase; letter-spacing: 0.05em; cursor: pointer;
+    margin-top: 0.5rem; transition: background 0.2s;
+    text-decoration: none; text-align: center;
   }
-  .btn-checkout-mini:hover { background: #2e2d2b; }
+  .btn-checkout-mini:hover { background: #2e2d2b; color: #fff; }
 
   /* ── Per-row inline confirmation overlay ─────────────────────── */
   .mini-confirm {
-    display: none;
-    position: absolute;
-    inset: 0;
-    background: rgba(255,255,255,0.97);
-    border-radius: 0.4rem;
-    z-index: 10;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    text-align: center;
-    padding: 1rem;
-    gap: 0.6rem;
+    display: none; position: absolute; inset: 0;
+    background: rgba(255,255,255,0.97); border-radius: 0.4rem;
+    z-index: 10; align-items: center; justify-content: center;
+    flex-direction: column; text-align: center; padding: 1rem; gap: 0.6rem;
   }
   .mini-confirm.show { display: flex; }
-  .mini-confirm p {
-    font-family: var(--secondary-font);
-    font-size: 0.82rem;
-    color: #41403E;
-    margin: 0;
-    line-height: 1.5;
-  }
+  .mini-confirm p { font-family: var(--secondary-font); font-size: 0.82rem; color: #41403E; margin: 0; line-height: 1.5; }
   .mini-confirm p strong { display: block; color: #c0392b; margin-bottom: 0.15rem; }
   .mini-confirm-actions { display: flex; gap: 0.5rem; }
   .mini-confirm-cancel {
-    padding: 0.4rem 0.85rem;
-    border: 1px solid rgba(65,64,62,0.2);
-    border-radius: 0.25rem;
-    background: transparent;
-    font-family: var(--secondary-font);
-    font-size: 0.78rem;
-    font-weight: 500;
-    color: #908F8D;
-    cursor: pointer;
-    transition: all 0.15s;
+    padding: 0.4rem 0.85rem; border: 1px solid rgba(65,64,62,0.2);
+    border-radius: 0.25rem; background: transparent;
+    font-family: var(--secondary-font); font-size: 0.78rem; font-weight: 500;
+    color: #908F8D; cursor: pointer; transition: all 0.15s;
   }
   .mini-confirm-cancel:hover { background: #F9F3EC; color: #41403E; }
   .mini-confirm-ok {
-    padding: 0.4rem 0.85rem;
-    background: #c0392b;
-    border: 1px solid #c0392b;
-    border-radius: 0.25rem;
-    font-family: var(--secondary-font);
-    font-size: 0.78rem;
-    font-weight: 500;
-    color: #fff;
-    cursor: pointer;
-    transition: background 0.15s;
+    padding: 0.4rem 0.85rem; background: #c0392b; border: 1px solid #c0392b;
+    border-radius: 0.25rem; font-family: var(--secondary-font);
+    font-size: 0.78rem; font-weight: 500; color: #fff; cursor: pointer; transition: background 0.15s;
   }
   .mini-confirm-ok:hover { background: #a93226; }
 </style>
@@ -176,18 +102,18 @@
 
   <h4 class="d-flex justify-content-between align-items-center mb-3">
     <span class="text-primary">Your cart</span>
-    <span class="badge bg-primary rounded-circle pt-2 cart-badge">{{ items | sum(attribute='quantity') }}</span>
+    <span class="badge bg-primary rounded-circle pt-2 cart-badge">
+      {{ items | sum(attribute='quantity') }}
+    </span>
   </h4>
 
   {% for item in items %}
     <div class="mini-item" id="mini-row-{{ item.product.id }}" style="position:relative;">
 
-      <img
-        class="mini-thumb"
-        src="{{ url_for('static', filename=item.product.image_url) }}"
-        alt="{{ item.product.name }}"
-        onerror="this.src='{{ url_for('static', filename='images/item1.jpg') }}'"
-      >
+      <img class="mini-thumb"
+           src="{{ url_for('static', filename=item.product.image_url) }}"
+           alt="{{ item.product.name }}"
+           onerror="this.src='{{ url_for('static', filename='images/item1.jpg') }}'">
 
       <div>
         <a href="{{ url_for('shop.product_detail', slug=item.product.slug) }}"
@@ -195,17 +121,18 @@
         <div class="mini-meta">
           Qty: {{ item.quantity }} &nbsp;·&nbsp; ${{ "%.2f" | format(item.product.price) }} each
         </div>
-        <button type="button"
-                class="mini-btn-remove"
+        <button type="button" class="mini-btn-remove"
                 onclick="miniConfirmRemove({{ item.product.id }}, '{{ item.product.name | replace("'", "\\'") }}')">
           <iconify-icon icon="la:trash-alt"></iconify-icon>
           Remove
         </button>
       </div>
 
-      <div class="mini-price">${{ "%.2f" | format(item.product.price * item.quantity) }}</div>
+      <div class="mini-price">
+        ${{ "%.2f" | format(item.product.price * item.quantity) }}
+      </div>
 
-      {# Inline confirm overlay — shown/hidden by miniConfirmRemove() in base.html #}
+      {# Inline confirm overlay #}
       <div class="mini-confirm" id="mini-confirm-{{ item.product.id }}">
         <p>
           <strong>Remove item?</strong>
@@ -229,9 +156,17 @@
 
   <a href="{{ url_for('cart.view_cart') }}" class="btn-view-cart">View Full Cart</a>
 
-  <form method="POST" action="{{ url_for('cart.checkout') }}">
-    <button type="submit" class="btn-checkout-mini">Checkout</button>
-  </form>
+  {#
+    Checkout redirects to the full cart page where the Bootstrap checkout modal lives.
+    A direct POST without phone/address would be rejected, so we send the user
+    to the cart page first.
+  #}
+  <a href="{{ url_for('cart.view_cart') }}#checkout" class="btn-checkout-mini">
+    <iconify-icon icon="la:lock"
+                  style="font-size:0.95rem; vertical-align:-2px; margin-right:0.3rem;">
+    </iconify-icon>
+    Proceed to Checkout
+  </a>
 
 {% else %}
 
@@ -243,7 +178,8 @@
       Your cart is empty.
     </p>
     <a href="{{ url_for('shop.index') }}"
-       style="font-family:var(--secondary-font); font-size:0.85rem; color:#DEAD6F; text-decoration:none; font-weight:500;">
+       style="font-family:var(--secondary-font); font-size:0.85rem; color:#DEAD6F;
+              text-decoration:none; font-weight:500;">
       Browse the Shop →
     </a>
   </div>

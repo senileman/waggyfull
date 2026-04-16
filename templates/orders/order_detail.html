@@ -1,0 +1,337 @@
+{% extends "base.html" %}
+{% block title %}Order {{ order.receipt_id }} — Waggy Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+  .detail-hero {
+    background: #F9F3EC;
+    border-bottom: 1px solid rgba(65,64,62,0.08);
+    padding: 2rem 0 1.5rem;
+  }
+  .detail-hero .eyebrow {
+    font-family: var(--secondary-font); font-size: 0.72rem;
+    letter-spacing: 0.15em; text-transform: uppercase; color: #DEAD6F;
+    display: block; margin-bottom: 0.3rem;
+  }
+  .detail-hero h1 { font-size: 1.8rem; margin: 0 0 0.25rem; }
+
+  /* ── Status badge ────────────────────────────── */
+  .status-badge {
+    display: inline-flex; align-items: center; gap: 0.45rem;
+    font-family: var(--secondary-font); font-size: 0.82rem; font-weight: 600;
+    padding: 0.4rem 1rem; border-radius: 2rem;
+    text-transform: uppercase; letter-spacing: 0.03em;
+  }
+  .status-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+
+  /* ── Info cards ──────────────────────────────── */
+  .detail-card {
+    background: #fff; border: 1px solid rgba(65,64,62,0.08);
+    border-radius: 0.75rem; padding: 1.5rem; height: 100%;
+  }
+  .detail-card h5 {
+    font-family: var(--secondary-font); font-size: 0.72rem; font-weight: 500;
+    letter-spacing: 0.12em; text-transform: uppercase; color: #908F8D;
+    border-bottom: 1px solid rgba(65,64,62,0.08); padding-bottom: 0.6rem;
+    margin-bottom: 1rem;
+  }
+
+  .info-row {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    padding: 0.5rem 0; border-bottom: 1px solid rgba(65,64,62,0.05);
+    font-family: var(--secondary-font); font-size: 0.875rem;
+  }
+  .info-row:last-child { border-bottom: none; }
+  .info-row .lbl { color: #908F8D; flex-shrink: 0; margin-right: 1rem; }
+  .info-row .val { color: var(--bs-body-color); text-align: right; }
+  .info-row .val.address-val { text-align: right; white-space: pre-line; }
+
+  /* ── Items table ─────────────────────────────── */
+  .items-table { width: 100%; border-collapse: collapse; }
+  .items-table th {
+    font-family: var(--secondary-font); font-size: 0.7rem; font-weight: 500;
+    letter-spacing: 0.1em; text-transform: uppercase; color: #908F8D;
+    border-bottom: 1px solid rgba(65,64,62,0.12); padding: 0.5rem 0.75rem;
+    text-align: left; white-space: nowrap;
+  }
+  .items-table th:last-child { text-align: right; }
+  .items-table td {
+    padding: 0.85rem 0.75rem; border-bottom: 1px solid rgba(65,64,62,0.06);
+    vertical-align: middle;
+  }
+  .items-table tr:last-child td { border-bottom: none; }
+  .items-table td:last-child { text-align: right; }
+  .prod-name { font-size: 0.9rem; color: var(--bs-body-color); }
+  .prod-cat { font-family: var(--secondary-font); font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; color: #CACACA; }
+  .num-col { font-family: var(--secondary-font); font-size: 0.875rem; color: #908F8D; }
+  .total-col { font-family: var(--secondary-font); font-size: 0.95rem; font-weight: 600; color: #DEAD6F; }
+
+  /* ── Status update form ──────────────────────── */
+  .status-form {
+    background: #fff; border: 1px solid rgba(65,64,62,0.08);
+    border-radius: 0.75rem; padding: 1.5rem;
+  }
+  .status-form h5 {
+    font-family: var(--secondary-font); font-size: 0.72rem; font-weight: 500;
+    letter-spacing: 0.12em; text-transform: uppercase; color: #908F8D;
+    border-bottom: 1px solid rgba(65,64,62,0.08); padding-bottom: 0.6rem;
+    margin-bottom: 1rem;
+  }
+
+  .status-option {
+    display: flex; align-items: center; gap: 0.75rem;
+    padding: 0.75rem 1rem; border-radius: 0.4rem;
+    border: 1px solid rgba(65,64,62,0.12); margin-bottom: 0.5rem;
+    cursor: pointer; transition: border-color 0.18s, background 0.18s;
+  }
+  .status-option:last-child { margin-bottom: 0; }
+  .status-option:hover { border-color: rgba(65,64,62,0.25); background: #FAFAF9; }
+  .status-option input[type="radio"] { display: none; }
+  .status-option.selected { border-color: #41403E; background: #F9F3EC; }
+
+  .status-radio-dot {
+    width: 16px; height: 16px; border-radius: 50%;
+    border: 2px solid rgba(65,64,62,0.25); flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: border-color 0.15s;
+  }
+  .status-option.selected .status-radio-dot {
+    border-color: #41403E; background: #41403E;
+  }
+  .status-option.selected .status-radio-dot::after {
+    content: ''; width: 6px; height: 6px; border-radius: 50%; background: #fff;
+  }
+
+  .status-label {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    font-family: var(--secondary-font); font-size: 0.8rem; font-weight: 600;
+    padding: 0.25rem 0.65rem; border-radius: 2rem;
+    text-transform: uppercase; letter-spacing: 0.03em;
+  }
+
+  .btn-update-status {
+    width: 100%; margin-top: 1rem; padding: 0.9rem;
+    background: #41403E; color: #fff; border: none; border-radius: 0.25rem;
+    font-family: var(--secondary-font); font-size: 0.875rem; font-weight: 500;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    cursor: pointer; transition: background 0.2s;
+  }
+  .btn-update-status:hover { background: #2e2d2b; }
+
+  /* ── Receipt link ────────────────────────────── */
+  .view-receipt-link {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    font-family: var(--secondary-font); font-size: 0.82rem; font-weight: 500;
+    color: #908F8D; text-decoration: none; padding: 0.5rem 1rem;
+    border: 1px solid rgba(65,64,62,0.2); border-radius: 0.25rem;
+    transition: all 0.18s;
+  }
+  .view-receipt-link:hover { background: #F9F3EC; color: var(--bs-body-color); }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="detail-hero">
+  <div class="container">
+    <nav aria-label="breadcrumb" class="mb-2">
+      <ol class="breadcrumb mb-0" style="font-family:var(--secondary-font); font-size:0.8rem;">
+        <li class="breadcrumb-item"><a href="{{ url_for('main.dashboard') }}" class="text-muted text-decoration-none">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('orders.orders_list') }}" class="text-muted text-decoration-none">Orders</a></li>
+        <li class="breadcrumb-item active text-muted">{{ order.receipt_id }}</li>
+      </ol>
+    </nav>
+    <span class="eyebrow">Order Management</span>
+    <h1 class="fw-normal">{{ order.receipt_id }}</h1>
+
+    <div class="d-flex align-items-center gap-3 flex-wrap mt-1">
+      {% set s = order.status_style %}
+      <span class="status-badge" style="background:{{ s.bg }}; color:{{ s.color }};">
+        <span class="status-dot" style="background:{{ s.dot }};"></span>
+        {{ order.status_label }}
+      </span>
+      <span style="font-family:var(--secondary-font); font-size:0.85rem; color:#908F8D;">
+        Placed {{ order.created_at.strftime('%d %B %Y at %H:%M') }} UTC
+      </span>
+      <a href="{{ url_for('orders.receipt', receipt_id=order.receipt_id) }}"
+         class="view-receipt-link">
+        <iconify-icon icon="la:file-invoice"></iconify-icon>
+        View Receipt
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="container my-4">
+  <div class="row g-4">
+
+    {# ── Left column: order details ── #}
+    <div class="col-lg-8">
+
+      {# Order items #}
+      <div class="detail-card mb-4">
+        <h5>Items Ordered</h5>
+        <div style="overflow-x:auto;">
+          <table class="items-table">
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th style="text-align:center; width:70px;">Qty</th>
+                <th style="text-align:right; width:100px;">Unit Price</th>
+                <th style="text-align:right; width:110px;">Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in order.items %}
+                <tr>
+                  <td>
+                    <div class="prod-name">{{ item.product_name }}</div>
+                    <div class="prod-cat">{{ item.product_category }}</div>
+                    {% if item.product_id %}
+                      <div style="font-family:var(--secondary-font); font-size:0.72rem; color:#CACACA;">
+                        Product ID: #{{ item.product_id }}
+                      </div>
+                    {% endif %}
+                  </td>
+                  <td class="num-col" style="text-align:center;">{{ item.quantity }}</td>
+                  <td class="num-col" style="text-align:right;">${{ "%.2f" | format(item.unit_price) }}</td>
+                  <td class="total-col">${{ "%.2f" | format(item.line_total) }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:baseline; margin-top:1rem; padding-top:1rem; border-top:2px solid rgba(65,64,62,0.08);">
+          <span style="font-family:var(--secondary-font); font-size:0.78rem; font-weight:500; text-transform:uppercase; letter-spacing:0.07em; color:#908F8D;">
+            Grand Total
+          </span>
+          <span style="font-size:1.5rem;">${{ "%.2f" | format(order.total) }}</span>
+        </div>
+      </div>
+
+      {# Customer + shipping info #}
+      <div class="row g-3">
+        <div class="col-sm-6">
+          <div class="detail-card">
+            <h5>Customer</h5>
+            <div class="info-row">
+              <span class="lbl">Username</span>
+              <span class="val">{{ order.user.username }}</span>
+            </div>
+            <div class="info-row">
+              <span class="lbl">Email</span>
+              <span class="val" style="word-break:break-all;">{{ order.user.email }}</span>
+            </div>
+            <div class="info-row">
+              <span class="lbl">Customer ID</span>
+              <span class="val" style="font-family:var(--secondary-font); color:#908F8D;">#{{ order.user_id }}</span>
+            </div>
+            <div class="info-row">
+              <span class="lbl">Member since</span>
+              <span class="val" style="font-family:var(--secondary-font);">{{ order.user.created_at.strftime('%d %b %Y') }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-sm-6">
+          <div class="detail-card">
+            <h5>Shipping Details</h5>
+            <div class="info-row">
+              <span class="lbl">Phone</span>
+              <span class="val">{{ order.phone }}</span>
+            </div>
+            <div class="info-row">
+              <span class="lbl">Address</span>
+              <span class="val address-val">{{ order.address }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    {# ── Right column: status management ── #}
+    <div class="col-lg-4">
+
+      {# Status update form #}
+      <div class="status-form mb-3">
+        <h5>Update Order Status</h5>
+        <form method="POST"
+              action="{{ url_for('orders.update_status', order_id=order.id) }}"
+              id="status-form">
+
+          {% for key, label in statuses.items() %}
+            {% set s = status_styles[key] %}
+            <label class="status-option {% if order.status == key %}selected{% endif %}"
+                   id="option-{{ key }}"
+                   onclick="selectStatus('{{ key }}')">
+              <input type="radio" name="status" value="{{ key }}"
+                     {% if order.status == key %}checked{% endif %}>
+              <div class="status-radio-dot" id="dot-{{ key }}"></div>
+              <span class="status-label" style="background:{{ s.bg }}; color:{{ s.color }};">
+                <span style="width:6px; height:6px; border-radius:50%; background:{{ s.dot }}; flex-shrink:0;"></span>
+                {{ label }}
+              </span>
+            </label>
+          {% endfor %}
+
+          <button type="submit" class="btn-update-status">
+            <iconify-icon icon="la:save" style="font-size:1rem; vertical-align:-2px; margin-right:0.35rem;"></iconify-icon>
+            Save Status
+          </button>
+        </form>
+      </div>
+
+      {# Order metadata #}
+      <div class="detail-card">
+        <h5>Order Details</h5>
+        <div class="info-row">
+          <span class="lbl">Receipt ID</span>
+          <span class="val" style="font-family:var(--secondary-font); font-size:0.82rem; letter-spacing:0.03em; color:#908F8D;">{{ order.receipt_id }}</span>
+        </div>
+        <div class="info-row">
+          <span class="lbl">Order ID</span>
+          <span class="val" style="font-family:var(--secondary-font); color:#908F8D;">#{{ order.id }}</span>
+        </div>
+        <div class="info-row">
+          <span class="lbl">Placed</span>
+          <span class="val" style="font-family:var(--secondary-font);">{{ order.created_at.strftime('%d %b %Y') }}</span>
+        </div>
+        <div class="info-row">
+          <span class="lbl">Updated</span>
+          <span class="val" style="font-family:var(--secondary-font);">{{ order.updated_at.strftime('%d %b %Y, %H:%M') }}</span>
+        </div>
+        <div class="info-row">
+          <span class="lbl">Items</span>
+          <span class="val">{{ order.item_count }}</span>
+        </div>
+        <div class="info-row">
+          <span class="lbl">Total</span>
+          <span class="val" style="color:#DEAD6F; font-weight:600;">${{ "%.2f" | format(order.total) }}</span>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  const ALL_STATUSES = {{ statuses.keys() | list | tojson }};
+
+  function selectStatus(key) {
+    // Update visual selection
+    ALL_STATUSES.forEach(function(s) {
+      const opt = document.getElementById('option-' + s);
+      if (opt) opt.classList.toggle('selected', s === key);
+    });
+    // Check the hidden radio
+    const radio = document.querySelector('input[name="status"][value="' + key + '"]');
+    if (radio) radio.checked = true;
+  }
+</script>
+{% endblock %}

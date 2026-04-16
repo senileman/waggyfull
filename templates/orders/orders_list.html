@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+{% block title %}Manage Orders — Waggy Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* ── Admin hero ──────────────────────────────── */
+  .admin-hero {
+    background: #F9F3EC;
+    border-bottom: 1px solid rgba(65,64,62,0.08);
+    padding: 2rem 0 1.5rem;
+  }
+  .admin-hero .eyebrow {
+    font-family: var(--secondary-font); font-size: 0.72rem;
+    letter-spacing: 0.15em; text-transform: uppercase; color: #DEAD6F;
+    display: block; margin-bottom: 0.3rem;
+  }
+  .admin-hero h1 { font-size: 2rem; margin: 0; }
+
+  /* ── Stat row ────────────────────────────────── */
+  .admin-stat {
+    background: #fff; border: 1px solid rgba(65,64,62,0.08);
+    border-radius: 0.75rem; padding: 1.2rem 1.5rem; text-align: center;
+  }
+  .admin-stat .val { font-size: 2rem; line-height: 1; margin-bottom: 0.2rem; }
+  .admin-stat .lbl {
+    font-family: var(--secondary-font); font-size: 0.75rem;
+    letter-spacing: 0.07em; text-transform: uppercase; color: #908F8D;
+  }
+  .admin-stat.coloured .val { color: var(--dot-color); }
+
+  /* ── Filter pills ────────────────────────────── */
+  .filter-pill {
+    font-family: var(--secondary-font); font-size: 0.78rem; font-weight: 500;
+    letter-spacing: 0.05em; text-transform: uppercase;
+    padding: 0.4rem 0.9rem; border: 1px solid rgba(65,64,62,0.18);
+    border-radius: 2rem; text-decoration: none; color: #908F8D;
+    transition: all 0.2s; display: inline-flex; align-items: center; gap: 0.4rem;
+  }
+  .filter-pill:hover { color: var(--bs-body-color); border-color: var(--bs-body-color); }
+  .filter-pill.active { background: #41403E; color: #fff; border-color: #41403E; }
+  .filter-pill .pill-count {
+    font-size: 0.7rem; background: rgba(255,255,255,0.2); border-radius: 1rem;
+    padding: 0.1rem 0.4rem;
+  }
+  .filter-pill:not(.active) .pill-count { background: rgba(65,64,62,0.08); color: #908F8D; }
+
+  /* ── Orders table ────────────────────────────── */
+  .orders-table { width: 100%; border-collapse: collapse; }
+  .orders-table th {
+    font-family: var(--secondary-font); font-size: 0.72rem; font-weight: 500;
+    letter-spacing: 0.1em; text-transform: uppercase; color: #908F8D;
+    border-bottom: 1px solid rgba(65,64,62,0.12);
+    padding: 0.65rem 1rem; text-align: left; white-space: nowrap;
+  }
+  .orders-table td {
+    padding: 1rem; vertical-align: middle;
+    border-bottom: 1px solid rgba(65,64,62,0.06);
+  }
+  .orders-table tr:last-child td { border-bottom: none; }
+  .orders-table tr:hover td { background: #FAFAF9; }
+
+  .receipt-link {
+    font-family: var(--secondary-font); font-size: 0.875rem;
+    font-weight: 600; color: #DEAD6F; text-decoration: none;
+    letter-spacing: 0.03em;
+  }
+  .receipt-link:hover { color: #d4a254; }
+
+  .status-badge {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    font-family: var(--secondary-font); font-size: 0.73rem; font-weight: 600;
+    padding: 0.28rem 0.7rem; border-radius: 2rem;
+    text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap;
+  }
+  .status-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+  .btn-tbl {
+    font-family: var(--secondary-font); font-size: 0.75rem; font-weight: 500;
+    padding: 0.35rem 0.7rem; border: 1px solid rgba(65,64,62,0.18);
+    border-radius: 0.25rem; background: transparent; cursor: pointer;
+    color: #908F8D; text-decoration: none; transition: all 0.18s; white-space: nowrap;
+  }
+  .btn-tbl:hover { background: #41403E; color: #fff; border-color: #41403E; }
+
+  /* ── Empty state ─────────────────────────────── */
+  .empty-admin { padding: 4rem 1rem; text-align: center; border: 1px dashed rgba(65,64,62,0.15); border-radius: 0.75rem; }
+  .empty-admin iconify-icon { font-size: 3rem; color: #D9D9D8; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="admin-hero">
+  <div class="container">
+    <nav aria-label="breadcrumb" class="mb-2">
+      <ol class="breadcrumb mb-0" style="font-family:var(--secondary-font); font-size:0.8rem;">
+        <li class="breadcrumb-item"><a href="{{ url_for('main.dashboard') }}" class="text-muted text-decoration-none">Dashboard</a></li>
+        <li class="breadcrumb-item active text-muted">Orders</li>
+      </ol>
+    </nav>
+    <span class="eyebrow">Admin Panel</span>
+    <h1 class="fw-normal">Customer <span class="text-primary">Orders</span></h1>
+  </div>
+</div>
+
+<div class="container my-4">
+
+  {# ── Stat row ── #}
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="admin-stat">
+        <div class="val">{{ counts.all }}</div>
+        <div class="lbl">Total Orders</div>
+      </div>
+    </div>
+    {% for key, label in statuses.items() %}
+      <div class="col-6 col-md-3">
+        <div class="admin-stat coloured" style="--dot-color: {{ status_styles[key].dot }};">
+          <div class="val">{{ counts[key] }}</div>
+          <div class="lbl">{{ label }}</div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  {# ── Filter pills ── #}
+  <div class="d-flex flex-wrap gap-2 mb-4">
+    <a href="{{ url_for('orders.orders_list') }}"
+       class="filter-pill {% if active_status == 'all' %}active{% endif %}">
+      All <span class="pill-count">{{ counts.all }}</span>
+    </a>
+    {% for key, label in statuses.items() %}
+      <a href="{{ url_for('orders.orders_list', status=key) }}"
+         class="filter-pill {% if active_status == key %}active{% endif %}">
+        <span class="status-dot"
+              style="background:{{ status_styles[key].dot }};
+                     {% if active_status == key %}opacity:0.8;{% endif %}">
+        </span>
+        {{ label }}
+        <span class="pill-count">{{ counts[key] }}</span>
+      </a>
+    {% endfor %}
+  </div>
+
+  {# ── Orders table ── #}
+  {% if orders %}
+    <div style="overflow-x:auto; border-radius:0.75rem; border:1px solid rgba(65,64,62,0.08);">
+      <table class="orders-table">
+        <thead>
+          <tr>
+            <th>Receipt ID</th>
+            <th>Customer</th>
+            <th>Date</th>
+            <th>Items</th>
+            <th>Total</th>
+            <th>Status</th>
+            <th style="min-width:80px;"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for order in orders %}
+            <tr>
+              <td>
+                <a href="{{ url_for('orders.order_detail', order_id=order.id) }}"
+                   class="receipt-link">{{ order.receipt_id }}</a>
+              </td>
+              <td>
+                <div style="font-size:0.9rem;">{{ order.user.username }}</div>
+                <div style="font-family:var(--secondary-font); font-size:0.75rem; color:#CACACA;">
+                  {{ order.user.email }}
+                </div>
+              </td>
+              <td style="font-family:var(--secondary-font); font-size:0.85rem; color:#908F8D; white-space:nowrap;">
+                {{ order.created_at.strftime('%d %b %Y') }}<br>
+                <span style="font-size:0.75rem;">{{ order.created_at.strftime('%H:%M') }} UTC</span>
+              </td>
+              <td style="font-family:var(--secondary-font); font-size:0.875rem;">
+                {{ order.item_count }} item{{ 's' if order.item_count != 1 }}
+              </td>
+              <td style="font-family:var(--secondary-font); font-size:0.95rem; font-weight:500; color:#DEAD6F; white-space:nowrap;">
+                ${{ "%.2f" | format(order.total) }}
+              </td>
+              <td>
+                {% set s = order.status_style %}
+                <span class="status-badge" style="background:{{ s.bg }}; color:{{ s.color }};">
+                  <span class="status-dot" style="background:{{ s.dot }};"></span>
+                  {{ order.status_label }}
+                </span>
+              </td>
+              <td>
+                <a href="{{ url_for('orders.order_detail', order_id=order.id) }}"
+                   class="btn-tbl">
+                  <iconify-icon icon="la:eye" style="font-size:0.85rem; vertical-align:-1px;"></iconify-icon>
+                  View
+                </a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+  {% else %}
+    <div class="empty-admin">
+      <iconify-icon icon="la:clipboard-list"></iconify-icon>
+      <h4 class="mt-3 fw-normal">No orders yet</h4>
+      <p class="secondary-font" style="color:#908F8D; font-size:0.875rem;">
+        {% if active_status != 'all' %}
+          No <strong>{{ statuses[active_status] }}</strong> orders found.
+          <a href="{{ url_for('orders.orders_list') }}">View all orders.</a>
+        {% else %}
+          Orders will appear here once customers start checking out.
+        {% endif %}
+      </p>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}
