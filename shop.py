@@ -3,6 +3,7 @@ shop.py — Shop blueprint for Waggy.
 
 Routes:
     GET  /shop                                  — Product grid
+    GET  /shop/search                           — Search results
     GET  /shop/product/<slug>                   — Product detail (slug-based)
     GET  /shop/change-listing                   — Admin: list all products
     GET/POST /shop/change-listing/add           — Admin: add product
@@ -13,6 +14,7 @@ Routes:
 
 import os
 import re
+import re as _re
 import uuid
 from functools import wraps
 
@@ -28,6 +30,24 @@ from models import db, Product, CartItem, PRODUCT_CATEGORIES
 shop_bp = Blueprint("shop", __name__, url_prefix="/shop")
 
 ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp"}
+
+
+# ── Jinja2 highlight filter ───────────────────────────────────────────────────
+
+@shop_bp.record_once
+def _register_highlight(state):
+    """Wraps query terms in <mark> tags for search result highlighting."""
+    def highlight(text: str, query: str) -> str:
+        if not query or not text:
+            return text
+        escaped = _re.escape(query)
+        return _re.sub(
+            f"({escaped})",
+            r"<mark>\1</mark>",
+            str(text),
+            flags=_re.IGNORECASE,
+        )
+    state.app.jinja_env.filters["highlight"] = highlight
 
 
 # ── Slug helpers ──────────────────────────────────────────────────────────────
@@ -88,12 +108,6 @@ def _save_image(file_obj) -> str | None:
 # ── Cart-purge helper ─────────────────────────────────────────────────────────
 
 def _purge_from_all_carts(product_id: int) -> int:
-    """
-    Remove every CartItem referencing *product_id* (across all users and the
-    session-based guest cart is handled separately in cart.py helpers).
-
-    Returns the number of DB rows deleted so the caller can report it.
-    """
     deleted = (
         CartItem.query
         .filter_by(product_id=product_id)
@@ -126,6 +140,35 @@ def index():
     return render_template(
         "shop/index.html",
         products=products,
+        categories=PRODUCT_CATEGORIES,
+        active_category=category,
+    )
+
+
+@shop_bp.route("/search")
+def search():
+    query = request.args.get("q", "").strip()
+    category = request.args.get("category", "all")
+
+    results = []
+    if query:
+        like = f"%{query}%"
+        q = Product.query.filter(
+            Product.is_active.is_(True),
+            db.or_(
+                Product.name.ilike(like),
+                Product.description.ilike(like),
+                Product.extended_description.ilike(like),
+            ),
+        )
+        if category and category != "all":
+            q = q.filter_by(category=category)
+        results = q.order_by(Product.created_at.desc()).all()
+
+    return render_template(
+        "shop/search.html",
+        results=results,
+        query=query,
         categories=PRODUCT_CATEGORIES,
         active_category=category,
     )
@@ -283,7 +326,6 @@ def edit_product(product_id):
                 categories=PRODUCT_CATEGORIES,
             )
 
-        # ── If the product is being hidden, purge it from all carts ──────────
         was_active = product.is_active
         if was_active and not is_active:
             removed = _purge_from_all_carts(product.id)
@@ -294,7 +336,6 @@ def edit_product(product_id):
                     "warning",
                 )
 
-        # Regenerate slug only if name changed
         if name != product.name:
             product.slug = _unique_slug(name, exclude_id=product.id)
 
@@ -329,8 +370,6 @@ def delete_product(product_id):
     product = Product.query.get_or_404(product_id)
     name = product.name
 
-    # Count how many cart rows will be removed so we can tell the admin.
-    # The actual removal happens via the cascade defined on the relationship.
     cart_rows = CartItem.query.filter_by(product_id=product_id).count()
 
     db.session.delete(product)
@@ -355,7 +394,6 @@ def toggle_product(product_id):
 
     cart_msg = ""
     if not new_state:
-        # Product is being hidden — remove it from every user's cart.
         removed = _purge_from_all_carts(product.id)
         if removed:
             cart_msg = (

@@ -66,9 +66,14 @@
     <div class="offcanvas-body">
       <h4 class="text-primary text-uppercase mb-3">Search</h4>
       <div class="search-bar border rounded-2 border-dark-subtle">
-        <form class="text-center d-flex align-items-center" action="" method="get">
-          <input type="text" class="form-control border-0 bg-transparent" placeholder="Search Here" name="q" />
-          <iconify-icon icon="tabler:search" class="fs-4 me-3"></iconify-icon>
+        <form class="text-center d-flex align-items-center"
+              action="{{ url_for('shop.search') }}" method="get">
+          <input type="text" class="form-control border-0 bg-transparent"
+                 placeholder="Search Here" name="q" />
+          <button type="submit" class="btn border-0 bg-transparent p-0 me-2"
+                  aria-label="Search" data-bs-dismiss="offcanvas">
+            <iconify-icon icon="tabler:search" class="fs-4"></iconify-icon>
+          </button>
         </form>
       </div>
     </div>
@@ -87,10 +92,15 @@
 
         <div class="col-sm-6 offset-sm-2 offset-md-0 col-lg-5 d-none d-lg-block">
           <div class="search-bar border rounded-2 px-3 border-dark-subtle">
-            <form class="text-center d-flex align-items-center" action="" method="get">
+            <form class="text-center d-flex align-items-center"
+                  action="{{ url_for('shop.search') }}" method="get">
               <input type="text" class="form-control border-0 bg-transparent"
-                placeholder="Search for more than 10,000 products" name="q" />
-              <iconify-icon icon="tabler:search" class="fs-4"></iconify-icon>
+                     placeholder="Search for more than 10,000 products"
+                     name="q"
+                     value="{{ request.args.get('q', '') if request.endpoint == 'shop.search' else '' }}" />
+              <button type="submit" class="btn border-0 bg-transparent p-0" aria-label="Search">
+                <iconify-icon icon="tabler:search" class="fs-4"></iconify-icon>
+              </button>
             </form>
           </div>
         </div>
@@ -416,11 +426,7 @@
     });
 
     // ── Mini cart: confirm / cancel / execute remove ───────────────────────
-    // These MUST live here rather than inside _mini_cart.html because
-    // scripts injected via innerHTML are not executed by the browser.
-
     function miniConfirmRemove(pid, productName) {
-      // Close any other open confirmations first
       document.querySelectorAll('.mini-confirm.show').forEach(function(el) {
         if (el.id !== 'mini-confirm-' + pid) el.classList.remove('show');
       });
