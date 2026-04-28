@@ -1,17 +1,3 @@
-"""
-app.py — Waggy Flask application.
-
-Optional email receipts:
-  Set environment variables to enable:
-    MAIL_SERVER   (default: smtp.gmail.com)
-    MAIL_PORT     (default: 587)
-    MAIL_USERNAME
-    MAIL_PASSWORD
-    MAIL_DEFAULT_SENDER  (default: noreply@waggy.com)
-
-  Install Flask-Mail: pip install flask-mail
-  If not installed or not configured, checkout still works — emails are skipped.
-"""
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -24,12 +10,12 @@ from auth import auth_bp
 from shop import shop_bp, seed_missing_slugs
 from cart import cart_bp, get_cart_count
 from orders import orders_bp
+from users import users_bp
 
 
 def create_app() -> Flask:
     app = Flask(__name__)
 
-    # ── Core config ───────────────────────────────────────────────────────────
     app.config["SECRET_KEY"] = os.environ.get(
         "SECRET_KEY",
         "waggy-dev-key-REPLACE-this-before-deploying",
@@ -38,7 +24,6 @@ def create_app() -> Flask:
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["MAX_CONTENT_LENGTH"]             = 8 * 1024 * 1024
 
-    # ── Optional Flask-Mail config ────────────────────────────────────────────
     app.config["MAIL_SERVER"]         = os.environ.get("MAIL_SERVER", "smtp.gmail.com")
     app.config["MAIL_PORT"]           = int(os.environ.get("MAIL_PORT", 587))
     app.config["MAIL_USE_TLS"]        = os.environ.get("MAIL_USE_TLS", "true").lower() == "true"
@@ -58,10 +43,8 @@ def create_app() -> Flask:
     except ImportError:
         print("[Waggy] flask-mail not installed — receipt emails disabled.")
 
-    # ── Database ──────────────────────────────────────────────────────────────
     db.init_app(app)
 
-    # ── Flask-Login ───────────────────────────────────────────────────────────
     login_manager = LoginManager(app)
     login_manager.login_view             = "auth.login"
     login_manager.login_message          = "Please log in to continue."
@@ -71,13 +54,12 @@ def create_app() -> Flask:
     def load_user(user_id: str):
         return User.query.get(int(user_id))
 
-    # ── Blueprints ────────────────────────────────────────────────────────────
     app.register_blueprint(auth_bp)
     app.register_blueprint(shop_bp)
     app.register_blueprint(cart_bp)
     app.register_blueprint(orders_bp)
+    app.register_blueprint(users_bp)
 
-    # ── Context processor ─────────────────────────────────────────────────────
     @app.context_processor
     def inject_globals():
         return {
@@ -85,7 +67,6 @@ def create_app() -> Flask:
             "categories": PRODUCT_CATEGORIES,
         }
 
-    # ── Main blueprint ────────────────────────────────────────────────────────
     from flask import Blueprint
     main_bp = Blueprint("main", __name__)
 
@@ -100,12 +81,10 @@ def create_app() -> Flask:
 
     app.register_blueprint(main_bp)
 
-    # ── Error handlers ────────────────────────────────────────────────────────
     @app.errorhandler(403)
     def forbidden(e):
         return render_template("403.html"), 403
 
-    # ── Initialise DB ─────────────────────────────────────────────────────────
     with app.app_context():
         db.create_all()
         _seed_admin()
@@ -116,9 +95,22 @@ def create_app() -> Flask:
 
 def _seed_admin() -> None:
     admin_email = "admin@waggy.com"
-    if User.query.filter_by(email=admin_email).first():
+    existing = User.query.filter_by(email=admin_email).first()
+
+    if existing:
+        # Backfill the flag if the account already existed before this feature
+        if not existing.is_seeded_admin:
+            existing.is_seeded_admin = True
+            db.session.commit()
         return
-    admin = User(username="admin", email=admin_email, role="admin", is_active=True)
+
+    admin = User(
+        username="admin",
+        email=admin_email,
+        role="admin",
+        is_active=True,
+        is_seeded_admin=True,
+    )
     admin.set_password("Admin@waggy1")
     db.session.add(admin)
     db.session.commit()

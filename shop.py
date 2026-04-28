@@ -1,17 +1,3 @@
-"""
-shop.py — Shop blueprint for Waggy.
-
-Routes:
-    GET  /shop                                  — Product grid
-    GET  /shop/search                           — Search results
-    GET  /shop/product/<slug>                   — Product detail (slug-based)
-    GET  /shop/change-listing                   — Admin: list all products
-    GET/POST /shop/change-listing/add           — Admin: add product
-    GET/POST /shop/change-listing/edit/<id>     — Admin: edit product
-    POST     /shop/change-listing/delete/<id>   — Admin: delete product
-    POST     /shop/change-listing/toggle/<id>   — Admin: toggle visibility
-"""
-
 import os
 import re
 import re as _re
@@ -32,11 +18,11 @@ shop_bp = Blueprint("shop", __name__, url_prefix="/shop")
 ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp"}
 
 
-# ── Jinja2 highlight filter ───────────────────────────────────────────────────
+
 
 @shop_bp.record_once
 def _register_highlight(state):
-    """Wraps query terms in <mark> tags for search result highlighting."""
+
     def highlight(text: str, query: str) -> str:
         if not query or not text:
             return text
@@ -50,7 +36,7 @@ def _register_highlight(state):
     state.app.jinja_env.filters["highlight"] = highlight
 
 
-# ── Slug helpers ──────────────────────────────────────────────────────────────
+
 
 def _slugify(text: str) -> str:
     text = text.lower().strip()
@@ -76,7 +62,7 @@ def _unique_slug(name: str, exclude_id: int | None = None) -> str:
 
 
 def seed_missing_slugs() -> None:
-    """Give existing products without slugs a slug. Called once on startup."""
+
     products = Product.query.filter(
         (Product.slug == None) | (Product.slug == "")
     ).all()
@@ -86,7 +72,7 @@ def seed_missing_slugs() -> None:
         db.session.commit()
 
 
-# ── Image helpers ─────────────────────────────────────────────────────────────
+
 
 def _allowed_file(filename: str) -> bool:
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXT
@@ -105,7 +91,7 @@ def _save_image(file_obj) -> str | None:
     return unique_name
 
 
-# ── Cart-purge helper ─────────────────────────────────────────────────────────
+
 
 def _purge_from_all_carts(product_id: int) -> int:
     deleted = (
@@ -116,7 +102,7 @@ def _purge_from_all_carts(product_id: int) -> int:
     return deleted
 
 
-# ── Admin-only decorator ──────────────────────────────────────────────────────
+
 
 def admin_required(f):
     @wraps(f)
@@ -128,7 +114,7 @@ def admin_required(f):
     return decorated
 
 
-# ── Public routes ─────────────────────────────────────────────────────────────
+
 
 @shop_bp.route("/")
 def index():
@@ -192,7 +178,7 @@ def product_detail(slug):
     )
 
 
-# ── Admin routes ──────────────────────────────────────────────────────────────
+
 
 @shop_bp.route("/change-listing")
 @admin_required

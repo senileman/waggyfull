@@ -1,15 +1,3 @@
-"""
-cart.py — Shopping cart blueprint for Waggy.
-
-Routes (all prefixed with /cart):
-    GET  /cart/              — Full cart page
-    POST /cart/add           — Add item (AJAX → JSON)
-    POST /cart/update        — Update quantity (AJAX → JSON)
-    POST /cart/remove        — Remove item (AJAX → JSON)
-    GET  /cart/mini          — Mini-cart HTML for offcanvas (AJAX → HTML)
-    GET  /cart/count         — Cart item count (AJAX → JSON)
-    POST /cart/checkout      — Create order, clear cart, redirect to receipt
-"""
 
 from flask import (
     Blueprint, request, jsonify, session,
@@ -25,7 +13,6 @@ cart_bp = Blueprint("cart", __name__, url_prefix="/cart")
 _MAX_QTY = 99
 
 
-# ── Internal helpers ──────────────────────────────────────────────────────────
 
 def _session_cart() -> dict:
     return session.get("cart", {})
@@ -107,7 +94,7 @@ def _cart_total(items: list[dict]) -> float:
     return round(sum(i["product"].price * i["quantity"] for i in items), 2)
 
 
-# ── Email receipt ─────────────────────────────────────────────────────────────
+
 
 def _send_receipt_email(order) -> None:
     """Send a plain-text receipt email. Silent if Flask-Mail is not configured."""
@@ -164,7 +151,7 @@ def _send_receipt_email(order) -> None:
         current_app.logger.warning(f"[Waggy] Receipt email failed: {exc}")
 
 
-# ── Public route helpers ──────────────────────────────────────────────────────
+
 
 def merge_session_cart(user) -> None:
     cart = session.pop("cart", {})
@@ -187,7 +174,7 @@ def merge_session_cart(user) -> None:
     session.modified = True
 
 
-# ── Routes ────────────────────────────────────────────────────────────────────
+
 
 @cart_bp.route("/")
 def view_cart():
@@ -316,7 +303,7 @@ def checkout():
 
     total = _cart_total(items)
 
-    # Generate collision-resistant receipt ID
+
     receipt_id = _gen_receipt_id()
     for _ in range(10):
         if not Order.query.filter_by(receipt_id=receipt_id).first():
@@ -332,7 +319,7 @@ def checkout():
         status="confirmed",
     )
     db.session.add(order)
-    db.session.flush()  # populate order.id before adding items
+    db.session.flush()
 
     for item in items:
         db.session.add(OrderItem(
@@ -344,11 +331,9 @@ def checkout():
             unit_price=item["product"].price,
         ))
 
-    # Clear the user's cart
     CartItem.query.filter_by(user_id=current_user.id).delete()
     db.session.commit()
 
-    # Send receipt email (non-blocking failure)
     _send_receipt_email(order)
 
     flash(

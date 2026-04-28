@@ -1,13 +1,3 @@
-"""
-auth.py — Authentication blueprint for Waggy.
-
-Routes (all prefixed with /auth):
-    GET  /auth/login     — Render login form
-    POST /auth/login     — Process login
-    GET  /auth/register  — Render registration form
-    POST /auth/register  — Process registration
-    GET  /auth/logout    — Log out and redirect home
-"""
 
 import re
 from datetime import datetime
@@ -28,7 +18,6 @@ from models import db, User
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
 
-# ── Validation helpers ────────────────────────────────────────────────────────
 
 _USERNAME_RE = re.compile(r"^[A-Za-z0-9_]{3,30}$")
 _EMAIL_RE    = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
@@ -64,7 +53,6 @@ def _validate_password(value: str) -> str | None:
     return None
 
 
-# ── Routes ────────────────────────────────────────────────────────────────────
 
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
@@ -98,7 +86,6 @@ def login():
 
         login_user(user, remember=remember)
 
-        # Merge any guest session cart into the user's persistent DB cart
         from cart import merge_session_cart
         merge_session_cart(user)
 

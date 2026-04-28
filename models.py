@@ -9,19 +9,20 @@ from werkzeug.security import generate_password_hash, check_password_hash
 db = SQLAlchemy()
 
 
-# ── User ──────────────────────────────────────────────────────────────────────
 
 class User(UserMixin, db.Model):
     __tablename__ = "users"
 
-    id            = db.Column(db.Integer,     primary_key=True)
-    username      = db.Column(db.String(80),  unique=True, nullable=False)
-    email         = db.Column(db.String(120), unique=True, nullable=False)
-    password_hash = db.Column(db.String(256), nullable=False)
-    role          = db.Column(db.String(20),  nullable=False, default="customer")
-    is_active     = db.Column(db.Boolean,     nullable=False, default=True)
-    created_at    = db.Column(db.DateTime,    nullable=False, default=datetime.utcnow)
-    last_login_at = db.Column(db.DateTime,    nullable=True)
+    id               = db.Column(db.Integer,     primary_key=True)
+    username         = db.Column(db.String(80),  unique=True, nullable=False)
+    email            = db.Column(db.String(120), unique=True, nullable=False)
+    password_hash    = db.Column(db.String(256), nullable=False)
+    role             = db.Column(db.String(20),  nullable=False, default="customer")
+    is_active        = db.Column(db.Boolean,     nullable=False, default=True)
+
+    is_seeded_admin  = db.Column(db.Boolean,     nullable=False, default=False)
+    created_at       = db.Column(db.DateTime,    nullable=False, default=datetime.utcnow)
+    last_login_at    = db.Column(db.DateTime,    nullable=True)
 
     def set_password(self, plain_text: str) -> None:
         self.password_hash = generate_password_hash(plain_text)
@@ -37,7 +38,6 @@ class User(UserMixin, db.Model):
         return f"<User {self.username!r} role={self.role!r}>"
 
 
-# ── Product ───────────────────────────────────────────────────────────────────
 
 PRODUCT_CATEGORIES = {
     "food":        "Pet Foods",
@@ -86,7 +86,6 @@ class Product(db.Model):
         return f"<Product {self.name!r} [{self.category}] ${self.price:.2f}>"
 
 
-# ── Cart ──────────────────────────────────────────────────────────────────────
 
 class CartItem(db.Model):
     __tablename__ = "cart_items"
@@ -111,7 +110,6 @@ class CartItem(db.Model):
         return f"<CartItem user={self.user_id} product={self.product_id} qty={self.quantity}>"
 
 
-# ── Orders ────────────────────────────────────────────────────────────────────
 
 ORDER_STATUSES = {
     "confirmed": "Confirmed",
@@ -120,7 +118,7 @@ ORDER_STATUSES = {
     "cancelled": "Cancelled",
 }
 
-# Status badge colours for templates
+
 ORDER_STATUS_STYLES = {
     "confirmed": {"bg": "rgba(105,149,177,0.12)", "color": "#1d5a7a", "dot": "#6995B1"},
     "shipping":  {"bg": "rgba(255,152,0,0.12)",   "color": "#a06000", "dot": "#ff9800"},

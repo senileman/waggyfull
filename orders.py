@@ -68,10 +68,7 @@ _STATUS_MESSAGES = {
 
 
 def _send_status_email(order, old_status: str, new_status: str) -> None:
-    """
-    Email the customer informing them their order status has changed.
-    Silently skipped if Flask-Mail is not installed or not configured.
-    """
+
     try:
         mail = current_app.extensions.get("mail")
         if not mail:
@@ -90,7 +87,6 @@ def _send_status_email(order, old_status: str, new_status: str) -> None:
             _external=True,
         )
 
-        # Build a summary of the ordered items
         items_lines = []
         for item in order.items:
             items_lines.append(
@@ -137,14 +133,13 @@ def _send_status_email(order, old_status: str, new_status: str) -> None:
         )
 
     except Exception as exc:
-        # Never let a mail failure break the admin action
+
         current_app.logger.warning(
             f"[Waggy] Status-change email failed for order "
             f"{order.receipt_id}: {exc}"
         )
 
 
-# ── Customer routes ───────────────────────────────────────────────────────────
 
 @orders_bp.route("/orders/receipt/<receipt_id>")
 @login_required
@@ -177,7 +172,6 @@ def my_orders():
     )
 
 
-# ── Admin routes ──────────────────────────────────────────────────────────────
 
 @orders_bp.route("/dashboard/orders")
 @admin_required
@@ -189,7 +183,6 @@ def orders_list():
         q = q.filter_by(status=status_filter)
     orders = q.order_by(Order.created_at.desc()).all()
 
-    # Aggregate counts per status for the stat bar
     counts = {s: Order.query.filter_by(status=s).count() for s in ORDER_STATUSES}
     counts["all"] = Order.query.count()
 
@@ -225,7 +218,6 @@ def update_status(order_id):
         flash("Invalid status value.", "danger")
         return redirect(url_for("orders.order_detail", order_id=order_id))
 
-    # Nothing to do if the status hasn't actually changed
     if order.status == new_status:
         flash("Order status is already set to that value.", "info")
         return redirect(url_for("orders.order_detail", order_id=order_id))
@@ -236,7 +228,6 @@ def update_status(order_id):
     order.status = new_status
     db.session.commit()
 
-    # Notify the customer by email (non-blocking)
     _send_status_email(order, old_status, new_status)
 
     flash(

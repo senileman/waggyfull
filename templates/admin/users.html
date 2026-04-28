@@ -1,0 +1,653 @@
+{% extends "base.html" %}
+{% block title %}Manage Users — Waggy Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* ── Admin hero ───────────────────────────────────────────── */
+  .admin-hero {
+    background: #F9F3EC;
+    border-bottom: 1px solid rgba(65, 64, 62, 0.08);
+    padding: 2rem 0 1.5rem;
+  }
+  .admin-hero .eyebrow {
+    font-family: var(--secondary-font);
+    font-size: 0.72rem; letter-spacing: 0.15em;
+    text-transform: uppercase; color: #DEAD6F;
+    display: block; margin-bottom: 0.3rem;
+  }
+  .admin-hero h1 { font-size: 2rem; margin: 0; }
+
+  /* ── Stat cards ───────────────────────────────────────────── */
+  .admin-stat {
+    background: #fff;
+    border: 1px solid rgba(65, 64, 62, 0.08);
+    border-radius: 0.75rem;
+    padding: 1.2rem 1.5rem;
+    text-align: center;
+  }
+  .admin-stat .val { font-size: 2rem; line-height: 1; margin-bottom: 0.2rem; }
+  .admin-stat .lbl {
+    font-family: var(--secondary-font); font-size: 0.75rem;
+    letter-spacing: 0.07em; text-transform: uppercase; color: #908F8D;
+  }
+
+  /* ── Toolbar ──────────────────────────────────────────────── */
+  .toolbar {
+    display: flex; align-items: center;
+    gap: 0.6rem; flex-wrap: wrap;
+    margin: 2rem 0 1.25rem;
+  }
+
+  /* Search input */
+  .search-wrap {
+    position: relative; flex: 1; min-width: 180px; max-width: 320px;
+  }
+  .search-wrap iconify-icon {
+    position: absolute; left: 0.8rem; top: 50%;
+    transform: translateY(-50%);
+    color: #CACACA; font-size: 1rem; pointer-events: none;
+  }
+  .search-input {
+    width: 100%;
+    border: 1px solid rgba(65, 64, 62, 0.18);
+    border-radius: 0.35rem;
+    background: #fff;
+    padding: 0.55rem 0.9rem 0.55rem 2.4rem;
+    font-family: var(--secondary-font); font-size: 0.875rem;
+    color: var(--bs-body-color); outline: none;
+    transition: border-color 0.2s;
+  }
+  .search-input::placeholder { color: #CACACA; }
+  .search-input:focus { border-color: #DEAD6F; box-shadow: 0 0 0 3px rgba(222,173,111,0.12); }
+
+  /* Filter pills */
+  .filter-pill {
+    font-family: var(--secondary-font); font-size: 0.75rem; font-weight: 500;
+    letter-spacing: 0.05em; text-transform: uppercase;
+    padding: 0.4rem 0.9rem; border: 1px solid rgba(65, 64, 62, 0.18);
+    border-radius: 2rem; text-decoration: none; color: #908F8D;
+    transition: all 0.18s; white-space: nowrap;
+  }
+  .filter-pill:hover { color: var(--bs-body-color); border-color: var(--bs-body-color); }
+  .filter-pill.active { background: #41403E; color: #fff; border-color: #41403E; }
+
+  /* Divider between filter groups */
+  .pill-divider {
+    width: 1px; height: 24px;
+    background: rgba(65, 64, 62, 0.12); flex-shrink: 0;
+  }
+
+  /* ── Users table ──────────────────────────────────────────── */
+  .users-table { width: 100%; border-collapse: collapse; }
+  .users-table th {
+    font-family: var(--secondary-font); font-size: 0.7rem; font-weight: 500;
+    letter-spacing: 0.1em; text-transform: uppercase; color: #908F8D;
+    border-bottom: 1px solid rgba(65, 64, 62, 0.12);
+    padding: 0.65rem 1rem; text-align: left; white-space: nowrap;
+  }
+  .users-table td {
+    padding: 0.95rem 1rem; vertical-align: middle;
+    border-bottom: 1px solid rgba(65, 64, 62, 0.06);
+  }
+  .users-table tr:last-child td { border-bottom: none; }
+  .users-table tr:hover td { background: #FAFAF9; }
+
+  /* Avatar initial circle */
+  .user-avatar {
+    width: 38px; height: 38px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; color: #fff; flex-shrink: 0;
+    font-family: var(--body-font);
+  }
+  .user-avatar.role-admin    { background: #DEAD6F; }
+  .user-avatar.role-customer { background: #6995B1; }
+  .user-avatar.banned        { background: #c0392b; }
+
+  .user-name {
+    font-size: 0.9rem; font-weight: 400; color: var(--bs-body-color);
+    margin-bottom: 0.1rem; line-height: 1.2;
+  }
+  .user-email {
+    font-family: var(--secondary-font); font-size: 0.75rem; color: #CACACA;
+  }
+
+  /* Role badge */
+  .role-badge {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    font-family: var(--secondary-font); font-size: 0.72rem; font-weight: 600;
+    padding: 0.25rem 0.65rem; border-radius: 2rem;
+    text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap;
+  }
+  .role-badge.admin    { background: rgba(222,173,111,0.15); color: #a07830; }
+  .role-badge.customer { background: rgba(105,149,177,0.12); color: #1d5a7a; }
+
+  /* Status badge */
+  .status-badge {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    font-family: var(--secondary-font); font-size: 0.72rem; font-weight: 600;
+    padding: 0.25rem 0.65rem; border-radius: 2rem;
+    text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap;
+  }
+  .status-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .status-badge.active { background: rgba(90,171,90,0.12); color: #2d7a2d; }
+  .status-badge.active .status-dot { background: #5aab5a; }
+  .status-badge.banned { background: rgba(192,57,43,0.10); color: #a02020; }
+  .status-badge.banned .status-dot { background: #c0392b; }
+
+  /* Protected badge */
+  .protected-badge {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    font-family: var(--secondary-font); font-size: 0.68rem; font-weight: 500;
+    padding: 0.2rem 0.55rem; border-radius: 2rem;
+    text-transform: uppercase; letter-spacing: 0.04em;
+    background: rgba(65,64,62,0.07); color: #908F8D; white-space: nowrap;
+  }
+
+  /* ── Action buttons ───────────────────────────────────────── */
+  .action-group { display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap; }
+
+  .btn-action {
+    font-family: var(--secondary-font); font-size: 0.73rem; font-weight: 500;
+    padding: 0.35rem 0.75rem; border: 1px solid rgba(65,64,62,0.18);
+    border-radius: 0.25rem; background: transparent;
+    cursor: pointer; color: #908F8D; text-decoration: none;
+    transition: all 0.18s; white-space: nowrap; display: inline-flex;
+    align-items: center; gap: 0.3rem;
+  }
+  .btn-action iconify-icon { font-size: 0.85rem; }
+
+  /* Promote → make admin */
+  .btn-promote:hover { background: #DEAD6F; border-color: #DEAD6F; color: #fff; }
+
+  /* Demote → back to customer */
+  .btn-demote:hover { background: #6995B1; border-color: #6995B1; color: #fff; }
+
+  /* Ban */
+  .btn-ban:hover { background: #c0392b; border-color: #c0392b; color: #fff; }
+
+  /* Unban */
+  .btn-unban { color: #2d7a2d; border-color: rgba(90,171,90,0.35); }
+  .btn-unban:hover { background: #5aab5a; border-color: #5aab5a; color: #fff; }
+
+  /* Disabled / locked */
+  .btn-action.locked {
+    opacity: 0.35; cursor: not-allowed; pointer-events: none;
+  }
+
+  /* ── Empty state ──────────────────────────────────────────── */
+  .empty-state {
+    padding: 4rem 1rem; text-align: center;
+    border: 1px dashed rgba(65, 64, 62, 0.15); border-radius: 0.75rem;
+  }
+  .empty-state iconify-icon { font-size: 3rem; color: #D9D9D8; }
+  .empty-state h4 { font-size: 1.2rem; margin: 0.75rem 0 0.4rem; font-weight: 400; }
+  .empty-state p { font-family: var(--secondary-font); font-size: 0.875rem; color: #908F8D; margin: 0; }
+
+  /* ── Confirm modals ───────────────────────────────────────── */
+  .confirm-backdrop {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0, 0, 0, 0.45); z-index: 1060;
+    align-items: center; justify-content: center;
+  }
+  .confirm-backdrop.show { display: flex; }
+
+  .confirm-modal {
+    background: #fff; border-radius: 0.85rem;
+    padding: 2rem 2rem 1.6rem; max-width: 420px; width: 92%;
+    box-shadow: 0 16px 56px rgba(0, 0, 0, 0.20);
+    animation: modalIn 0.2s ease;
+  }
+  @keyframes modalIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .confirm-icon {
+    width: 50px; height: 50px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 1rem; font-size: 1.4rem;
+  }
+  .confirm-icon.ban    { background: rgba(192,57,43,0.12); color: #c0392b; }
+  .confirm-icon.promote { background: rgba(222,173,111,0.18); color: #a07830; }
+  .confirm-icon.demote  { background: rgba(105,149,177,0.15); color: #1d5a7a; }
+  .confirm-icon.unban   { background: rgba(90,171,90,0.12);   color: #2d7a2d; }
+
+  .confirm-modal h5 { font-size: 1.1rem; font-weight: 400; margin-bottom: 0.5rem; }
+  .confirm-modal p  {
+    font-family: var(--secondary-font); font-size: 0.875rem;
+    color: #908F8D; margin-bottom: 1.5rem; line-height: 1.7;
+  }
+  .confirm-modal p strong { color: var(--bs-body-color); }
+
+  .confirm-modal .warn-note {
+    background: rgba(192,57,43,0.07); border-left: 3px solid #c0392b;
+    border-radius: 0 0.25rem 0.25rem 0;
+    padding: 0.6rem 0.85rem; margin-bottom: 1.5rem;
+    font-family: var(--secondary-font); font-size: 0.8rem; color: #a02020;
+    line-height: 1.6;
+  }
+
+  .confirm-actions { display: flex; gap: 0.6rem; justify-content: flex-end; }
+
+  .btn-modal-cancel {
+    padding: 0.6rem 1.2rem; background: transparent;
+    border: 1px solid rgba(65,64,62,0.2); border-radius: 0.25rem;
+    font-family: var(--secondary-font); font-size: 0.85rem; font-weight: 500;
+    color: #908F8D; cursor: pointer; transition: all 0.15s;
+  }
+  .btn-modal-cancel:hover { background: #F9F3EC; color: var(--bs-body-color); }
+
+  .btn-modal-confirm {
+    padding: 0.6rem 1.4rem; border: none; border-radius: 0.25rem;
+    font-family: var(--secondary-font); font-size: 0.85rem; font-weight: 500;
+    color: #fff; cursor: pointer; transition: background 0.15s;
+  }
+  .btn-modal-confirm.ban     { background: #c0392b; }
+  .btn-modal-confirm.ban:hover { background: #a93226; }
+  .btn-modal-confirm.promote  { background: #DEAD6F; }
+  .btn-modal-confirm.promote:hover { background: #d4a254; }
+  .btn-modal-confirm.demote   { background: #6995B1; }
+  .btn-modal-confirm.demote:hover { background: #5080a0; }
+  .btn-modal-confirm.unban    { background: #5aab5a; }
+  .btn-modal-confirm.unban:hover { background: #4a9a4a; }
+
+  /* ── Self / protected row highlight ──────────────────────── */
+  tr.is-self td { background: rgba(222,173,111,0.05); }
+</style>
+{% endblock %}
+
+{% block content %}
+
+{# ── Admin hero ────────────────────────────────────────────────────────────── #}
+<div class="admin-hero">
+  <div class="container">
+    <nav aria-label="breadcrumb" class="mb-2">
+      <ol class="breadcrumb mb-0" style="font-family:var(--secondary-font); font-size:0.8rem;">
+        <li class="breadcrumb-item">
+          <a href="{{ url_for('main.dashboard') }}" class="text-muted text-decoration-none">Dashboard</a>
+        </li>
+        <li class="breadcrumb-item active text-muted">Manage Users</li>
+      </ol>
+    </nav>
+    <span class="eyebrow">Admin Panel</span>
+    <h1 class="fw-normal">Manage <span class="text-primary">Users</span></h1>
+  </div>
+</div>
+
+<div class="container my-4">
+
+  {# ── Stat row ─────────────────────────────────────────────────────────────── #}
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="admin-stat">
+        <div class="val">{{ total }}</div>
+        <div class="lbl">Total Users</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="admin-stat">
+        <div class="val">{{ admin_count }}</div>
+        <div class="lbl">Admins</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="admin-stat">
+        <div class="val">{{ total - admin_count - banned_count }}</div>
+        <div class="lbl">Customers</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="admin-stat">
+        <div class="val" style="color: {% if banned_count %}#c0392b{% else %}inherit{% endif %};">
+          {{ banned_count }}
+        </div>
+        <div class="lbl">Banned</div>
+      </div>
+    </div>
+  </div>
+
+  {# ── Toolbar: search + filter pills ──────────────────────────────────────── #}
+  <form method="GET" action="{{ url_for('users.users_list') }}" id="filter-form">
+    <div class="toolbar">
+
+      {# Search box #}
+      <div class="search-wrap">
+        <iconify-icon icon="tabler:search"></iconify-icon>
+        <input
+          type="text"
+          class="search-input"
+          name="q"
+          value="{{ search }}"
+          placeholder="Search username or email…"
+          autocomplete="off"
+          oninput="document.getElementById('filter-form').submit()"
+        >
+      </div>
+
+      <div class="pill-divider d-none d-sm-block"></div>
+
+      {# Role filters #}
+      <input type="hidden" name="status" value="{{ status_filter }}">
+      <a href="{{ url_for('users.users_list', q=search, status=status_filter, role='all') }}"
+         class="filter-pill {% if role_filter == 'all' %}active{% endif %}">All roles</a>
+      <a href="{{ url_for('users.users_list', q=search, status=status_filter, role='admin') }}"
+         class="filter-pill {% if role_filter == 'admin' %}active{% endif %}">Admin</a>
+      <a href="{{ url_for('users.users_list', q=search, status=status_filter, role='customer') }}"
+         class="filter-pill {% if role_filter == 'customer' %}active{% endif %}">Customer</a>
+
+      <div class="pill-divider d-none d-sm-block"></div>
+
+      {# Status filters #}
+      <input type="hidden" name="role" value="{{ role_filter }}">
+      <a href="{{ url_for('users.users_list', q=search, role=role_filter, status='all') }}"
+         class="filter-pill {% if status_filter == 'all' %}active{% endif %}">All status</a>
+      <a href="{{ url_for('users.users_list', q=search, role=role_filter, status='active') }}"
+         class="filter-pill {% if status_filter == 'active' %}active{% endif %}">Active</a>
+      <a href="{{ url_for('users.users_list', q=search, role=role_filter, status='banned') }}"
+         class="filter-pill {% if status_filter == 'banned' %}active{% endif %}">Banned</a>
+
+    </div>
+  </form>
+
+  {# ── Results count ────────────────────────────────────────────────────────── #}
+  <p class="secondary-font mb-3" style="font-size:0.82rem; color:#908F8D;">
+    Showing <strong style="color:var(--bs-body-color);">{{ users | length }}</strong>
+    user{{ 's' if users | length != 1 }}
+    {% if search %}matching <em>"{{ search }}"</em>{% endif %}
+  </p>
+
+  {# ── Users table ──────────────────────────────────────────────────────────── #}
+  {% if users %}
+    <div style="overflow-x:auto; border-radius:0.75rem; border:1px solid rgba(65,64,62,0.08);">
+      <table class="users-table">
+        <thead>
+          <tr>
+            <th style="width:46px;"></th>
+            <th>User</th>
+            <th>Role</th>
+            <th>Status</th>
+            <th>Joined</th>
+            <th style="min-width:230px;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for user in users %}
+            {% set is_self     = user.id == current_user.id %}
+            {% set is_protected = user.is_seeded_admin %}
+            {% set is_banned   = not user.is_active %}
+
+            <tr {% if is_self %}class="is-self"{% endif %}>
+
+              {# Avatar #}
+              <td>
+                <div class="user-avatar
+                  {% if is_banned %}banned
+                  {% elif user.role == 'admin' %}role-admin
+                  {% else %}role-customer{% endif %}">
+                  {{ user.username[0].upper() }}
+                </div>
+              </td>
+
+              {# Name / email #}
+              <td>
+                <div class="user-name">
+                  {{ user.username }}
+                  {% if is_self %}
+                    <span class="protected-badge ms-1">
+                      <iconify-icon icon="la:user" style="font-size:0.75rem;"></iconify-icon>
+                      You
+                    </span>
+                  {% endif %}
+                  {% if is_protected %}
+                    <span class="protected-badge ms-1">
+                      <iconify-icon icon="la:lock" style="font-size:0.75rem;"></iconify-icon>
+                      Original Admin
+                    </span>
+                  {% endif %}
+                </div>
+                <div class="user-email">{{ user.email }}</div>
+              </td>
+
+              {# Role #}
+              <td>
+                <span class="role-badge {{ user.role }}">
+                  {% if user.role == 'admin' %}
+                    <iconify-icon icon="la:crown" style="font-size:0.8rem;"></iconify-icon>
+                  {% else %}
+                    <iconify-icon icon="la:user" style="font-size:0.8rem;"></iconify-icon>
+                  {% endif %}
+                  {{ user.role | capitalize }}
+                </span>
+              </td>
+
+              {# Status #}
+              <td>
+                <span class="status-badge {% if user.is_active %}active{% else %}banned{% endif %}">
+                  <span class="status-dot"></span>
+                  {% if user.is_active %}Active{% else %}Banned{% endif %}
+                </span>
+              </td>
+
+              {# Joined date #}
+              <td style="font-family:var(--secondary-font); font-size:0.8rem; color:#908F8D; white-space:nowrap;">
+                {{ user.created_at.strftime('%d %b %Y') }}
+              </td>
+
+              {# Actions #}
+              <td>
+                <div class="action-group">
+
+                  {% if is_protected or is_self %}
+                    {# Protected / self — no actions available #}
+                    <span class="btn-action locked">
+                      <iconify-icon icon="la:lock"></iconify-icon>
+                      Protected
+                    </span>
+
+                  {% elif is_banned %}
+                    {# Banned user — only unban available #}
+                    <button type="button"
+                            class="btn-action btn-unban"
+                            onclick="openModal('unban', {{ user.id }}, '{{ user.username | replace("'", "\\'") }}')">
+                      <iconify-icon icon="la:user-check"></iconify-icon>
+                      Unban
+                    </button>
+
+                  {% else %}
+                    {# Active user — promote / demote + ban #}
+
+                    {% if user.role == 'customer' %}
+                      <button type="button"
+                              class="btn-action btn-promote"
+                              onclick="openModal('promote', {{ user.id }}, '{{ user.username | replace("'", "\\'") }}')">
+                        <iconify-icon icon="la:crown"></iconify-icon>
+                        Promote
+                      </button>
+                    {% else %}
+                      <button type="button"
+                              class="btn-action btn-demote"
+                              onclick="openModal('demote', {{ user.id }}, '{{ user.username | replace("'", "\\'") }}')">
+                        <iconify-icon icon="la:user"></iconify-icon>
+                        Demote
+                      </button>
+                    {% endif %}
+
+                    <button type="button"
+                            class="btn-action btn-ban"
+                            onclick="openModal('ban', {{ user.id }}, '{{ user.username | replace("'", "\\'") }}', '{{ user.role }}')">
+                      <iconify-icon icon="la:ban"></iconify-icon>
+                      Ban
+                    </button>
+
+                  {% endif %}
+
+                </div>
+              </td>
+
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+  {% else %}
+    <div class="empty-state">
+      <iconify-icon icon="la:users-slash"></iconify-icon>
+      <h4>No users found</h4>
+      <p>
+        {% if search %}
+          No users match <em>"{{ search }}"</em>.
+          <a href="{{ url_for('users.users_list') }}">Clear search.</a>
+        {% else %}
+          No users match the current filters.
+        {% endif %}
+      </p>
+    </div>
+  {% endif %}
+
+</div>{# /container #}
+
+
+{# ══════════════════════════════════════════════════════════════════════════════
+   CONFIRM MODALS
+   (single shared backdrop; JS swaps content before showing)
+══════════════════════════════════════════════════════════════════════════════ #}
+
+<div class="confirm-backdrop" id="confirmBackdrop">
+  <div class="confirm-modal" role="dialog" aria-modal="true">
+
+    <div class="confirm-icon" id="modal-icon">
+      <iconify-icon id="modal-icon-inner" icon="la:question-circle"></iconify-icon>
+    </div>
+
+    <h5 id="modal-title">Confirm action</h5>
+    <p id="modal-body">Are you sure?</p>
+    <div id="modal-warn" class="warn-note" style="display:none;"></div>
+
+    <div class="confirm-actions">
+      <button type="button" class="btn-modal-cancel" onclick="closeModal()">Cancel</button>
+      <form id="modal-form" method="POST" style="display:inline;">
+        <button type="submit" class="btn-modal-confirm" id="modal-confirm-btn">Confirm</button>
+      </form>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+  /* ── Modal configuration per action type ──────────────────────────────────── */
+  const ACTION_CONFIG = {
+    promote: {
+      iconClass:   'promote',
+      icon:        'la:crown',
+      confirmClass:'promote',
+      confirmText: 'Promote to Admin',
+      titleFn:     name => `Promote ${name}?`,
+      bodyFn:      name =>
+        `<strong>${name}</strong> will be granted Admin privileges — they will be able ` +
+        `to manage products, orders, and other users. This can be reversed at any time.`,
+      warnFn:      ()   => null,
+      urlSegment:  'promote',
+    },
+    demote: {
+      iconClass:   'demote',
+      icon:        'la:user',
+      confirmClass:'demote',
+      confirmText: 'Demote to Customer',
+      titleFn:     name => `Demote ${name}?`,
+      bodyFn:      name =>
+        `<strong>${name}</strong> will lose their Admin role and be downgraded to a ` +
+        `regular Customer account. They will keep their order history.`,
+      warnFn:      ()   => null,
+      urlSegment:  'promote',   // same route — server toggles
+    },
+    ban: {
+      iconClass:   'ban',
+      icon:        'la:ban',
+      confirmClass:'ban',
+      confirmText: 'Ban User',
+      titleFn:     name  => `Ban ${name}?`,
+      bodyFn:      name  =>
+        `<strong>${name}</strong> will be immediately banned. They will not be able ` +
+        `to log in and their cart will be cleared.`,
+      warnFn:      (name, role) =>
+        role === 'admin'
+          ? `⚠ ${name} is currently an Admin. Banning will automatically revoke their Admin role.`
+          : null,
+      urlSegment:  'ban',
+    },
+    unban: {
+      iconClass:   'unban',
+      icon:        'la:user-check',
+      confirmClass:'unban',
+      confirmText: 'Unban User',
+      titleFn:     name => `Unban ${name}?`,
+      bodyFn:      name =>
+        `<strong>${name}</strong> will be reinstated as a regular Customer and will be ` +
+        `able to log in again. Their role will remain Customer until manually promoted.`,
+      warnFn:      ()   => null,
+      urlSegment:  'unban',
+    },
+  };
+
+  /* ── URL builder ─────────────────────────────────────────────────────────── */
+  function buildUrl(userId, segment) {
+    // e.g. /dashboard/users/42/ban
+    return `/dashboard/users/${userId}/${segment}`;
+  }
+
+  /* ── Open modal ──────────────────────────────────────────────────────────── */
+  function openModal(action, userId, username, role) {
+    const cfg  = ACTION_CONFIG[action];
+    if (!cfg) return;
+
+    // Icon
+    document.getElementById('modal-icon').className   = `confirm-icon ${cfg.iconClass}`;
+    document.getElementById('modal-icon-inner').setAttribute('icon', cfg.icon);
+
+    // Text
+    document.getElementById('modal-title').textContent = cfg.titleFn(username);
+    document.getElementById('modal-body').innerHTML     = cfg.bodyFn(username, role);
+
+    // Warning note
+    const warnEl   = document.getElementById('modal-warn');
+    const warnText = cfg.warnFn(username, role);
+    if (warnText) {
+      warnEl.textContent  = warnText;
+      warnEl.style.display = 'block';
+    } else {
+      warnEl.style.display = 'none';
+    }
+
+    // Confirm button
+    const confirmBtn = document.getElementById('modal-confirm-btn');
+    confirmBtn.className   = `btn-modal-confirm ${cfg.confirmClass}`;
+    confirmBtn.textContent  = cfg.confirmText;
+
+    // Form action
+    document.getElementById('modal-form').action = buildUrl(userId, cfg.urlSegment);
+
+    // Show
+    document.getElementById('confirmBackdrop').classList.add('show');
+  }
+
+  /* ── Close modal ─────────────────────────────────────────────────────────── */
+  function closeModal() {
+    document.getElementById('confirmBackdrop').classList.remove('show');
+  }
+
+  // Close on backdrop click
+  document.getElementById('confirmBackdrop').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+
+  // Close on Escape
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeModal();
+  });
+</script>
+{% endblock %}

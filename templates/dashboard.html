@@ -44,10 +44,14 @@
     padding: 1.5rem;
     text-align: center;
     transition: transform 0.2s, box-shadow 0.2s;
+    display: block;
+    text-decoration: none;
+    color: inherit;
   }
   .stat-card:hover {
     transform: translateY(-3px);
     box-shadow: 0 6px 24px rgba(65, 64, 62, 0.09);
+    color: inherit;
   }
   .stat-card iconify-icon { font-size: 2rem; color: var(--accent-color); }
   .stat-value { font-size: 2rem; line-height: 1.1; margin: 0.5rem 0 0.2rem; }
@@ -129,16 +133,16 @@
   <div class="row g-3 mb-5">
     {% if current_user.is_admin %}
       <div class="col-6 col-md-3">
-        <div class="stat-card">
+        <a href="{{ url_for('users.users_list') }}" class="stat-card">
           <iconify-icon icon="la:users"></iconify-icon>
           <div class="stat-value">—</div>
           <div class="stat-lbl">Total Users</div>
-        </div>
+        </a>
       </div>
     {% endif %}
     <div class="col-6 col-md-3">
       <a href="{% if current_user.is_admin %}{{ url_for('orders.orders_list') }}{% else %}{{ url_for('orders.my_orders') }}{% endif %}"
-         class="stat-card text-decoration-none d-block">
+         class="stat-card">
         <iconify-icon icon="la:shopping-bag"></iconify-icon>
         <div class="stat-value">{{ current_user.orders | length }}</div>
         <div class="stat-lbl">{% if current_user.is_admin %}All Orders{% else %}My Orders{% endif %}</div>
@@ -209,7 +213,7 @@
       <div class="row g-3">
         {% if current_user.is_admin %}
           <div class="col-6 col-sm-4">
-            <a href="#" class="quick-link">
+            <a href="{{ url_for('users.users_list') }}" class="quick-link">
               <iconify-icon icon="la:users-cog"></iconify-icon>
               <span>Manage Users</span>
             </a>
